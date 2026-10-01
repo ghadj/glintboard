@@ -1,0 +1,12 @@
+// Shared build settings. Debug and Release include this file.
+#include "Branding.xcconfig"
+
+MACOSX_DEPLOYMENT_TARGET = 15.0
+SWIFT_VERSION = 6.0
+SWIFT_STRICT_CONCURRENCY = complete
+ENABLE_HARDENED_RUNTIME = YES
+GENERATE_INFOPLIST_FILE = YES
+INFOPLIST_KEY_LSUIElement = YES
+
+// Personal signing settings, if present (gitignored). Included last so it can override.
+#include? "Local.xcconfig"

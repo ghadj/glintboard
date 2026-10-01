@@ -1,0 +1,7 @@
+// Copy to Local.xcconfig (gitignored; `make bootstrap` does this for you).
+// Signing with your own team lets macOS remember the Accessibility, Automation, and
+// Screen Recording permissions you grant between builds. A free Apple ID works.
+// Find your Team ID in Xcode > Settings > Accounts. Leave empty to sign ad hoc.
+
+DEVELOPMENT_TEAM =
+CODE_SIGN_STYLE = Automatic

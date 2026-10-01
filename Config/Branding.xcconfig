@@ -1,0 +1,12 @@
+// The only place the product name appears in the build.
+// To rename the app, change APP_DISPLAY_NAME (and the icon and docs). Nothing else.
+// Never change APP_BUNDLE_ID after the first release: macOS ties granted permissions,
+// preferences, and the default data folder to it. See docs/architecture.md, "Naming and branding".
+
+APP_DISPLAY_NAME = Glintboard
+APP_BUNDLE_ID = io.github.ghadj.glintboard
+
+PRODUCT_NAME = $(APP_DISPLAY_NAME)
+PRODUCT_MODULE_NAME = App
+PRODUCT_BUNDLE_IDENTIFIER = $(APP_BUNDLE_ID)
+INFOPLIST_KEY_CFBundleDisplayName = $(APP_DISPLAY_NAME)

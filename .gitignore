@@ -1,0 +1,15 @@
+# Build output
+.build/
+DerivedData/
+*.xcresult
+
+# Xcode user state
+xcuserdata/
+*.xcuserstate
+
+# Personal configuration
+Config/Local.xcconfig
+.claude/settings.local.json
+
+# macOS
+.DS_Store

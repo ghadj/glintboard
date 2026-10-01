@@ -1,0 +1,7 @@
+#include "Base.xcconfig"
+
+// Dev builds get their own identity, so they never share data, preferences, or
+// granted permissions with an installed release copy.
+PRODUCT_BUNDLE_IDENTIFIER = $(APP_BUNDLE_ID).dev
+PRODUCT_NAME = $(APP_DISPLAY_NAME) Dev
+INFOPLIST_KEY_CFBundleDisplayName = $(APP_DISPLAY_NAME) Dev
