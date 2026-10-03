@@ -437,7 +437,7 @@ Recent macOS versions may periodically ask users to re-confirm Screen Recording 
 
 **Distribution**
 
-- MIT or Apache 2.0 license (to decide), source on GitHub.
+- MIT license (decision 0015), source on GitHub.
 - Signed and notarized builds via GitHub Releases and a Homebrew cask; not the Mac App Store, whose sandbox makes Automation and Accessibility access much harder.
 - Hardened runtime with the Apple Events entitlement and `NSAppleEventsUsageDescription`.
 - Minimum macOS 15 (Sequoia), which covers the current SwiftUI and ScreenCaptureKit APIs the app uses (decision 0013).
@@ -474,7 +474,6 @@ The MVP is done when a user can capture from Safari, Mail, Finder, and screensho
 ## Open questions
 
 - Default hotkeys: ⌥⌘C and ⌥⌘V clash with Finder's Copy as Pathname and Move Item Here. This doc uses ⌃⌥C and ⌃⌥V instead; confirm they don't collide with common apps, and make both configurable.
-- License: MIT or Apache 2.0.
 - Project name: "Glintboard" is the working name; confirm GitHub, Homebrew, domain, and trademark availability before the first public release.
 - AI assist via Foundation Models needs macOS 26 and an Apple Intelligence Mac, while the app targets macOS 15; the feature should simply hide where unavailable.
 - Paste into previous app writes the scrap to the clipboard before sending ⌘V. Proposed default: restore the previous clipboard right after pasting, with a setting to keep the pasted scrap instead.

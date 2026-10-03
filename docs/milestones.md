@@ -55,7 +55,7 @@ A seed tool (`scripts/seed-library`, a small Swift script) generates test librar
 - **M0-R5** `Core` The starter kit is committed and adapted: `AGENTS.md` (agent-neutral rules), `CLAUDE.md` (imports `AGENTS.md`, adds Claude Code specifics), `.claude/settings.json`, hooks, the `reviewer` agent, the `/milestone`, `/req`, `/verify`, and `/decision` commands, `.swift-format`, the `Makefile`, and the `Config/*.xcconfig` files.
 - **M0-R6** `Core` `.github/workflows/ci.yml` runs on a macOS runner: selects the Xcode version from `.xcode-version`, then runs `make check` and `make test` ad-hoc signed. It needs no secrets, so pull requests from forks run it too.
 - **M0-R7** `Core` `scripts/check-native-only.sh` fails if any package dependency, `Package.resolved`, or remote package reference appears in the package or the Xcode project.
-- **M0-R8** `Core` Repo hygiene: `README.md` (pitch, build steps), `LICENSE` placeholder, `CONTRIBUTING.md`, `SECURITY.md`, a code of conduct, `.gitignore` (build output, Xcode user state, `Config/Local.xcconfig`, `.claude/settings.local.json`), `.github/pull_request_template.md`, issue templates (bug, provider request), `docs/decisions/0000-template.md`, `docs/design.md`, `docs/architecture.md`, and this file. Labels: `good first issue`, `provider`, `post-0.1`.
+- **M0-R8** `Core` Repo hygiene: `README.md` (pitch, build steps), `LICENSE` (MIT, decision 0015), `CONTRIBUTING.md`, `SECURITY.md`, a code of conduct, `.gitignore` (build output, Xcode user state, `Config/Local.xcconfig`, `.claude/settings.local.json`), `.github/pull_request_template.md`, issue templates (bug, provider request), `docs/decisions/0000-template.md`, `docs/design.md`, `docs/architecture.md`, and this file. Labels: `good first issue`, `provider`, `post-0.1`.
 - **M0-R9** `App` The empty app shows a menu bar icon with a menu (Show Shelf, Settings…, Quit). Show Shelf and Settings are stubs.
 - **M0-R10** `App` Baseline: physical footprint and launch time of the empty menu bar app are measured and recorded in `docs/perf.md`. If the idle footprint exceeds 30 MB, NFR-2 is revisited before M1 starts.
 - **M0-R11** `App` Brand-neutral naming: `AppInfo` exposes the display name and bundle identifier read from `Info.plist`; loggers and signposts use the bundle identifier as subsystem; `scripts/check-branding.sh` runs in CI. See "Naming and branding" in `docs/architecture.md`.
@@ -452,7 +452,6 @@ Passive clipboard capture, web reference checks, browsers other than Safari, AI 
 | Default hotkeys | ⌃⌥C / ⌃⌥V / ⌃⌥S, or other after collision testing | Start of M3 |
 | Clipboard after paste back | Restore previous (proposed) or keep scrap | Start of M3 |
 | NFR-2 target | Confirm or adjust after the M0 baseline | End of M0 |
-| License | MIT or Apache 2.0 | M6 |
 | Final name | Glintboard, pending availability checks | M6 |
 | Developer ID | Paid Apple Developer Program membership | Start of M6 |
 
@@ -468,3 +467,5 @@ Full notes live in `docs/decisions/`; this is the index.
 - **2026-10-01, architecture review.** Collections are folders; frontmatter holds only capture facts and user edits, while reference health lives in the index; board order uses fractional ranks so a move writes one file; files are referenced, never copied; retention is opt-in; Apple Events and Accessibility calls always carry short timeouts; the store suppresses its own FSEvents echoes; the board uses a virtualized collection view; the package is split into Model, Store, and Capture targets.
 - **2026-10-03, deployment target.** Minimum macOS 15 instead of 14, for the app and the package (`0013-deployment-target-macos-15.md`).
 - **2026-10-03, builds and tests in Claude Code.** The sandbox blocks the build tools' temp folders and the sandbox settings aren't changed, so the user runs builds and tests and Claude reads the output (`0014-builds-and-tests-run-by-the-user.md`).
+- **2026-10-03, decision records.** The structural decisions above are written up as records 0001–0012 in `docs/decisions/` (native only, files as source of truth, collections as folders, health in the index, fractional ranks, package layering, the system-client actor, AppKit and SwiftUI split, composition root, brand-neutral naming, AI readiness, one query tool set).
+- **2026-10-03, license.** MIT, copyright "the project contributors" (`0015-license-mit.md`).
