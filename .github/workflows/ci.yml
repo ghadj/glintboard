@@ -11,16 +11,24 @@ concurrency:
 
 jobs:
   build-and-test:
-    # Use the newest macOS image that ships the Xcode version in .xcode-version
-    # (see the runner image README). Forks need no secrets for this job.
-    runs-on: macos-15
+    # GitHub's Xcode 27 image (label `xcode-27`, in public preview since 2026-07-16).
+    # The `macos-NN` images don't ship Xcode 27. When .xcode-version moves to a new
+    # major, change this label to match. Forks need no secrets for this job.
+    runs-on: xcode-27
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
 
       - name: Select Xcode from .xcode-version
         run: |
-          sudo xcode-select -s "/Applications/Xcode_$(cat .xcode-version).app"
+          want="$(cat .xcode-version)"
+          app="/Applications/Xcode_${want}.app"
+          if [ ! -d "$app" ]; then
+            echo "::error::Xcode $want not found at $app. Installed:"
+            ls -d /Applications/Xcode*.app
+            exit 1
+          fi
+          sudo xcode-select -s "$app"
           xcodebuild -version
 
       - name: Checks (lint, native-only, branding)
