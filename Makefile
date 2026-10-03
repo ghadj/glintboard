@@ -39,9 +39,11 @@ lint: ## Check formatting
 format: ## Fix formatting in place
 	xcrun swift-format format --in-place --recursive App Packages
 
-check: lint ## Lint plus native-only and branding checks
+check: lint ## Lint plus native-only, branding, and layering checks, and their self-test
 	scripts/check-native-only.sh
 	scripts/check-branding.sh
+	scripts/check-layering.sh
+	scripts/test-checks.sh
 
 ci: check test ## Everything CI runs
 

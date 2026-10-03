@@ -31,7 +31,7 @@ jobs:
           sudo xcode-select -s "$app"
           xcodebuild -version
 
-      - name: Checks (lint, native-only, branding)
+      - name: Checks (lint, native-only, branding, layering)
         run: make check
 
       - name: Tests (ad-hoc signed)

@@ -49,7 +49,7 @@ A seed tool (`scripts/seed-library`, a small Swift script) generates test librar
 ### Requirements
 
 - **M0-R1** `App` `App.xcodeproj` is created once in Xcode (macOS App template) and committed. It uses synchronized folders, so adding source files never changes `project.pbxproj`. Build settings live in `Config/Base.xcconfig` (which includes `Config/Branding.xcconfig`), `Config/Debug.xcconfig`, and `Config/Release.xcconfig`. The target and scheme are named `App`, with `PRODUCT_MODULE_NAME = App`; the product name and bundle identifier come only from `Branding.xcconfig`. The app target is a menu bar agent (`LSUIElement = YES`), deployment target macOS 15 (decision 0013), Swift 6 language mode, hardened runtime with the Apple Events entitlement (`com.apple.security.automation.apple-events`), not sandboxed.
-- **M0-R2** `Core` `Packages/ScrapKit` is a Swift package with three library targets and matching test targets: `ScrapModel` (Foundation only), `ScrapStorage` (depends on Model, links SQLite3), and `ScrapCapture` (depends on Model and Store), plus `ScrapTestSupport` (fakes, linked only by tests). No package dependencies. Tests use Swift Testing.
+- **M0-R2** `Core` `Packages/ScrapKit` is a Swift package with three library targets and matching test targets: `ScrapModel` (Foundation and CryptoKit only), `ScrapStorage` (depends on Model, links SQLite3), and `ScrapCapture` (depends on Model and Store), plus `ScrapTestSupport` (fakes, linked only by tests). No package dependencies. Tests use Swift Testing.
 - **M0-R3** `App` `Info.plist` contains `NSAppleEventsUsageDescription` explaining Safari and Mail access in user-facing language. A String Catalog (`Localizable.xcstrings`) exists and holds every user-facing string from here on.
 - **M0-R4** `App` Local builds sign with the developer's Apple Development certificate (so macOS privacy permissions persist across rebuilds). CI builds ad-hoc signed (`CODE_SIGN_IDENTITY=-`), since Apple silicon won't run unsigned code.
 - **M0-R5** `Core` The starter kit is committed and adapted: `AGENTS.md` (agent-neutral rules), `CLAUDE.md` (imports `AGENTS.md`, adds Claude Code specifics), `.claude/settings.json`, hooks, the `reviewer` agent, the `/milestone`, `/req`, `/verify`, and `/decision` commands, `.swift-format`, the `Makefile`, and the `Config/*.xcconfig` files.
@@ -70,7 +70,7 @@ A seed tool (`scripts/seed-library`, a small Swift script) generates test librar
 - [ ] Automated: on a scratch branch, adding any package dependency makes the native-only check fail in CI.
 - [ ] Automated: on a scratch branch, writing the product name in a Swift file makes the branding check fail in CI.
 - [ ] Manual: changing `APP_DISPLAY_NAME` and rebuilding renames the app bundle and its menu bar title, with no other edits.
-- [ ] Automated: `ScrapModel` cannot import `ScrapStorage` (a deliberate violation fails to compile; then remove it).
+- [ ] Automated: `ScrapModel` cannot import `ScrapStorage`: a deliberate violation fails `scripts/check-layering.sh` in `make check` (covered by its self-test). The compiler alone only catches it on clean builds (spike S0-1).
 - [ ] Manual: the app shows a menu bar icon and no Dock icon; Quit exits cleanly.
 - [ ] Manual: Claude Code, started in the repo with the sandbox on, runs lint and the native-only and branding checks without prompts beyond first-time approvals, and gets build and test results by asking the user to run `make` with `!` (decision 0014).
 - [ ] `docs/perf.md` contains the baseline numbers.

@@ -1,6 +1,7 @@
 // swift-tools-version: 6.0
-// Core logic for the app, testable without AppKit. Layering is enforced by target
-// dependencies: Model <- Storage <- Capture. No package dependencies (native only).
+// Core logic for the app, testable without AppKit. Layering follows the target
+// dependencies, Model <- Storage <- Capture, and scripts/check-layering.sh enforces it
+// (incremental builds can miss a forbidden import). No package dependencies (native only).
 import PackageDescription
 
 // Matches the App target's SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY.
@@ -15,7 +16,7 @@ let package = Package(
         .library(name: "ScrapCapture", targets: ["ScrapCapture"]),
     ],
     targets: [
-        // Foundation only: value types, frontmatter codec, fingerprints, ranks, layout math.
+        // Foundation and CryptoKit only: value types, frontmatter codec, fingerprints, ranks, layout math.
         .target(name: "ScrapModel", swiftSettings: swiftSettings),
         // File store, SQLite index, reconciliation.
         .target(

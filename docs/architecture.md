@@ -30,7 +30,7 @@ The library folder is the only shared state: Glintboard writes it atomically and
 
 ## Module structure
 
-The app is four layers with one-way dependencies: three targets in the `ScrapKit` package, plus the app target on top. The package makes the rules compiler-enforced rather than conventions.
+The app is four layers with one-way dependencies: three targets in the `ScrapKit` package, plus the app target on top. The package makes the rules enforced rather than conventions: target dependencies make a clean build fail on a forbidden import, and because incremental builds can miss one (spike S0-1), `scripts/check-layering.sh` checks every library target's imports (not the test targets) in `make check`.
 
 &#91;embedded content: module structure · 4 layers, the Apple frameworks each uses\]
 
@@ -501,7 +501,7 @@ The structural choices above become decision records in M0, so the reasoning liv
 | 0003 | Collections are folders; ids live in frontmatter, never in file names |
 | 0004 | Reference health lives in the index; background work never writes scrap files |
 | 0005 | Fractional ranks for board order |
-| 0006 | Three-target package with compiler-enforced layering and a test-support target |
+| 0006 | Three-target package with enforced layering (target dependencies plus `check-layering.sh`) and a test-support target |
 | 0007 | Apple Events and Accessibility on a dedicated serial actor with hard timeouts |
 | 0008 | AppKit for windows and focus, SwiftUI for content, NSCollectionView for the board |
 | 0009 | Composition root with initializer injection; no singletons |

@@ -369,11 +369,11 @@ Frontmatter keeps the files compatible with Obsidian and static-site tools. The 
 
 ## Architecture
 
-ScrapKit is one Swift package split into three targets, named for the domain rather than the product, so the compiler enforces the layering: lower layers can't import higher ones, and nothing below the app imports AppKit.
+ScrapKit is one Swift package split into three targets, named for the domain rather than the product, so the layering is enforced by the build (target dependencies, caught by the compiler on clean builds) and by `scripts/check-layering.sh` in `make check`: lower layers can't import higher ones, and nothing below the app imports AppKit.
 
 | Layer | Contents | Depends on |
 | --- | --- | --- |
-| ScrapModel | Scrap, Reference, and Collection types; YAML-subset codec; fingerprints; fractional ranks; text-fragment builder | Foundation |
+| ScrapModel | Scrap, Reference, and Collection types; YAML-subset codec; fingerprints; fractional ranks; text-fragment builder | Foundation, CryptoKit |
 | ScrapStorage | File store actor (atomic writes, folder watcher, self-echo suppression); index actor (SQLite3, FTS5, reference health); launch reconciliation | Model, SQLite3 |
 | ScrapCapture | Capture pipeline, privacy filter, provider protocol and registry, provider logic written against system-client protocols | Model, Store |
 | App | AppKit shell (menu bar, NSPanel, windows), SwiftUI views, NSCollectionView board, and the real system clients: pasteboard, Accessibility, Apple Events, ScreenCaptureKit, hotkeys | All of the above |
