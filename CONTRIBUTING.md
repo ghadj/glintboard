@@ -32,6 +32,7 @@ You can also open `App.xcodeproj` in Xcode and run the `App` scheme.
 
 ## Ground rules
 
+- **Respect.** Everyone taking part follows the [code of conduct](CODE_OF_CONDUCT.md).
 - **Native only.** Apple frameworks only; no Swift packages or vendored code. CI enforces this.
 - **Brand-neutral code.** Never write the product name in code; use `AppInfo.displayName`. CI enforces this too.
 - **Privacy first.** Never log captured content except as private, never add network calls outside the documented opt-in features, and never store concealed or transient pasteboard items.

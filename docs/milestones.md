@@ -27,9 +27,9 @@ From the design doc's resource budget. Release blockers. Measure on an M1 MacBoo
 | ID | Requirement | Target | How to measure |
 | --- | --- | --- | --- |
 | NFR-1 | Idle CPU, default mode | 0% (no periodic work) | Activity Monitor, 5 minutes idle, shelf closed |
-| NFR-2 | Memory, shelf closed | < 40 MB (confirmed against the M0 baseline) | `footprint Glintboard` after closing the shelf |
+| NFR-2 | Memory, shelf closed | < 40 MB (confirmed against the M0 baseline) | `make perf` (`footprint` a minute after launch, shelf closed) |
 | NFR-3 | Memory, shelf open, 500 scraps | < 80 MB | `footprint` with the 500-scrap seed library |
-| NFR-4 | Launch to menu bar icon | < 0.5 s | Instruments App Launch template |
+| NFR-4 | Launch to menu bar icon | < 0.5 s | `make perf`: from a log marker just before `open` to the app's "Launched: status item installed" log line (Instruments' App Launch template doesn't finish for an app without a window) |
 | NFR-5 | Capture to card visible | < 150 ms | Signposts from trigger to card render |
 | NFR-6 | Energy Impact | "Low" | Activity Monitor Energy tab, normal use |
 | NFR-7 | App size | < 15 MB | Size of the notarized `.app` |
@@ -48,31 +48,31 @@ A seed tool (`scripts/seed-library`, a small Swift script) generates test librar
 
 ### Requirements
 
-- **M0-R1** `App` `App.xcodeproj` is created once in Xcode (macOS App template) and committed. It uses synchronized folders, so adding source files never changes `project.pbxproj`. Build settings live in `Config/Base.xcconfig` (which includes `Config/Branding.xcconfig`), `Config/Debug.xcconfig`, and `Config/Release.xcconfig`. The target and scheme are named `App`, with `PRODUCT_MODULE_NAME = App`; the product name and bundle identifier come only from `Branding.xcconfig`. The app target is a menu bar agent (`LSUIElement = YES`), deployment target macOS 14, Swift 6 language mode, hardened runtime with the Apple Events entitlement (`com.apple.security.automation.apple-events`), not sandboxed.
-- **M0-R2** `Core` `Packages/ScrapKit` is a Swift package with three library targets and matching test targets: `ScrapModel` (Foundation only), `ScrapStorage` (depends on Model, links SQLite3), and `ScrapCapture` (depends on Model and Store), plus `ScrapTestSupport` (fakes, linked only by tests). No package dependencies. Tests use Swift Testing.
+- **M0-R1** `App` `App.xcodeproj` is created once in Xcode (macOS App template) and committed. It uses synchronized folders, so adding source files never changes `project.pbxproj`. Build settings live in `Config/Base.xcconfig` (which includes `Config/Branding.xcconfig`), `Config/Debug.xcconfig`, and `Config/Release.xcconfig`. The target and scheme are named `App`, with `PRODUCT_MODULE_NAME = App`; the product name and bundle identifier come only from `Branding.xcconfig`. The app target is a menu bar agent (`LSUIElement = YES`), deployment target macOS 15 (decision 0013), Swift 6 language mode, hardened runtime with the Apple Events entitlement (`com.apple.security.automation.apple-events`), not sandboxed.
+- **M0-R2** `Core` `Packages/ScrapKit` is a Swift package with three library targets and matching test targets: `ScrapModel` (Foundation and CryptoKit only), `ScrapStorage` (depends on Model, links SQLite3), and `ScrapCapture` (depends on Model and Store), plus `ScrapTestSupport` (fakes, linked only by tests). No package dependencies. Tests use Swift Testing.
 - **M0-R3** `App` `Info.plist` contains `NSAppleEventsUsageDescription` explaining Safari and Mail access in user-facing language. A String Catalog (`Localizable.xcstrings`) exists and holds every user-facing string from here on.
 - **M0-R4** `App` Local builds sign with the developer's Apple Development certificate (so macOS privacy permissions persist across rebuilds). CI builds ad-hoc signed (`CODE_SIGN_IDENTITY=-`), since Apple silicon won't run unsigned code.
 - **M0-R5** `Core` The starter kit is committed and adapted: `AGENTS.md` (agent-neutral rules), `CLAUDE.md` (imports `AGENTS.md`, adds Claude Code specifics), `.claude/settings.json`, hooks, the `reviewer` agent, the `/milestone`, `/req`, `/verify`, and `/decision` commands, `.swift-format`, the `Makefile`, and the `Config/*.xcconfig` files.
 - **M0-R6** `Core` `.github/workflows/ci.yml` runs on a macOS runner: selects the Xcode version from `.xcode-version`, then runs `make check` and `make test` ad-hoc signed. It needs no secrets, so pull requests from forks run it too.
 - **M0-R7** `Core` `scripts/check-native-only.sh` fails if any package dependency, `Package.resolved`, or remote package reference appears in the package or the Xcode project.
-- **M0-R8** `Core` Repo hygiene: `README.md` (pitch, build steps), `LICENSE` placeholder, `CONTRIBUTING.md`, `SECURITY.md`, a code of conduct, `.gitignore` (build output, Xcode user state, `Config/Local.xcconfig`, `.claude/settings.local.json`), `.github/pull_request_template.md`, issue templates (bug, provider request), `docs/decisions/0000-template.md`, `docs/design.md`, `docs/architecture.md`, and this file. Labels: `good first issue`, `provider`, `post-0.1`.
+- **M0-R8** `Core` Repo hygiene: `README.md` (pitch, build steps), `LICENSE` (MIT, decision 0015), `CONTRIBUTING.md`, `SECURITY.md`, a code of conduct, `.gitignore` (build output, Xcode user state, `Config/Local.xcconfig`, `.claude/settings.local.json`), `.github/pull_request_template.md`, issue templates (bug, provider request), `docs/decisions/0000-template.md`, `docs/design.md`, `docs/architecture.md`, and this file. Labels: `good first issue`, `provider`, `post-0.1`.
 - **M0-R9** `App` The empty app shows a menu bar icon with a menu (Show Shelf, Settings…, Quit). Show Shelf and Settings are stubs.
 - **M0-R10** `App` Baseline: physical footprint and launch time of the empty menu bar app are measured and recorded in `docs/perf.md`. If the idle footprint exceeds 30 MB, NFR-2 is revisited before M1 starts.
 - **M0-R11** `App` Brand-neutral naming: `AppInfo` exposes the display name and bundle identifier read from `Info.plist`; loggers and signposts use the bundle identifier as subsystem; `scripts/check-branding.sh` runs in CI. See "Naming and branding" in `docs/architecture.md`.
-- **M0-R12** `Core` Contributor onboarding: `.xcode-version` pins the Xcode version for contributors and CI; `make bootstrap` checks the toolchain, creates `Config/Local.xcconfig` from its example, and runs core tests; Debug builds are a separate Dev app (bundle id suffix `.dev`, own data folder and permissions) so contributors' installed copies are never touched. No tools beyond Xcode are required.
+- **M0-R12** `Core` Contributor onboarding: `.xcode-version` pins the Xcode version for contributors and CI; `make bootstrap` checks the toolchain, creates `Config/Local.xcconfig` from its example, and runs core tests; Debug builds are a separate Dev app (bundle id suffix `.dev`, so its own preferences and permissions, and from M1 its own data folder) so contributors' installed copies are never touched. No tools beyond Xcode are required.
 
 ### Acceptance criteria
 
 - [ ] Automated: a fresh clone builds and tests with `make ci`, without opening Xcode.
 - [ ] Manual: on a Mac with only Xcode installed, `git clone`, `make bootstrap`, and `make run` launch the Dev app with no other steps.
-- [ ] Manual: running the Dev app alongside an installed release keeps separate data folders and separate permission entries.
+- [ ] Manual: running the Dev app alongside an installed release keeps separate preferences and separate permission entries. (The data-folder half moved to M1, which first creates the folder; 2026-10-03.)
 - [ ] Automated: CI passes on the first PR.
 - [ ] Automated: on a scratch branch, adding any package dependency makes the native-only check fail in CI.
 - [ ] Automated: on a scratch branch, writing the product name in a Swift file makes the branding check fail in CI.
 - [ ] Manual: changing `APP_DISPLAY_NAME` and rebuilding renames the app bundle and its menu bar title, with no other edits.
-- [ ] Automated: `ScrapModel` cannot import `ScrapStorage` (a deliberate violation fails to compile; then remove it).
+- [ ] Automated: `ScrapModel` cannot import `ScrapStorage`: a deliberate violation fails `scripts/check-layering.sh` in `make check` (covered by its self-test). The compiler alone only catches it on clean builds (spike S0-1).
 - [ ] Manual: the app shows a menu bar icon and no Dock icon; Quit exits cleanly.
-- [ ] Manual: Claude Code, started in the repo with the sandbox on, runs the build and tests without prompts beyond first-time approvals.
+- [ ] Manual: Claude Code, started in the repo with the sandbox on, runs lint and the native-only and branding checks without prompts beyond first-time approvals, and gets build and test results by asking the user to run `make` with `!` (decision 0014).
 - [ ] `docs/perf.md` contains the baseline numbers.
 
 ---
@@ -136,6 +136,7 @@ A seed tool (`scripts/seed-library`, a small Swift script) generates test librar
 - [ ] Manual: after opening the shelf, the previous app is still frontmost, and arrow keys move the selection.
 - [ ] Manual: editing a scrap's body in another editor updates the card within 1 s; deleting the file removes it.
 - [ ] Manual: dragging a text scrap into TextEdit inserts rich text with a link; into a plain-text field, plain text.
+- [ ] Manual: running the Dev app alongside an installed release keeps separate data folders (`~/Library/Application Support/<bundle id>/Library` and `~/Library/Application Support/<bundle id>.dev/Library`). Moved from M0 (M0-R12).
 - [ ] NFR-1, NFR-2, NFR-4 measured and recorded.
 
 ---
@@ -450,8 +451,6 @@ Passive clipboard capture, web reference checks, browsers other than Safari, AI 
 | Safari private-window policy | Outcome of spike S2-1 | End of M2 |
 | Default hotkeys | ⌃⌥C / ⌃⌥V / ⌃⌥S, or other after collision testing | Start of M3 |
 | Clipboard after paste back | Restore previous (proposed) or keep scrap | Start of M3 |
-| NFR-2 target | Confirm or adjust after the M0 baseline | End of M0 |
-| License | MIT or Apache 2.0 | M6 |
 | Final name | Glintboard, pending availability checks | M6 |
 | Developer ID | Paid Apple Developer Program membership | Start of M6 |
 
@@ -465,3 +464,9 @@ Full notes live in `docs/decisions/`; this is the index.
 - **2026-10-01, brand-neutral naming.** The product name appears only in `Config/Branding.xcconfig`, the icon, and docs. Code uses `App` for the app target and the domain word "Scrap" for packages and modules (`ScrapKit`: `ScrapModel`, `ScrapStorage`, `ScrapCapture`, `ScrapTestSupport`). The bundle identifier is `io.github.ghadj.glintboard` (matching today's name by choice); it and the data folder never change, even if the app is renamed.
 - **2026-10-01, unavailable sources.** Sources in the Trash get their own `trashed` status; trashed and missing scraps are never removed automatically and are cleared only by the user with Clear Unavailable. Local file checks run whenever a card is visible (throttled to once a minute), Mail checks only while Mail is running.
 - **2026-10-01, architecture review.** Collections are folders; frontmatter holds only capture facts and user edits, while reference health lives in the index; board order uses fractional ranks so a move writes one file; files are referenced, never copied; retention is opt-in; Apple Events and Accessibility calls always carry short timeouts; the store suppresses its own FSEvents echoes; the board uses a virtualized collection view; the package is split into Model, Store, and Capture targets.
+- **2026-10-03, deployment target.** Minimum macOS 15 instead of 14, for the app and the package (`0013-deployment-target-macos-15.md`).
+- **2026-10-03, builds and tests in Claude Code.** The sandbox blocks the build tools' temp folders and the sandbox settings aren't changed, so the user runs builds and tests and Claude reads the output (`0014-builds-and-tests-run-by-the-user.md`).
+- **2026-10-03, decision records.** The structural decisions above are written up as records 0001–0012 in `docs/decisions/` (native only, files as source of truth, collections as folders, health in the index, fractional ranks, package layering, the system-client actor, AppKit and SwiftUI split, composition root, brand-neutral naming, AI readiness, one query tool set).
+- **2026-10-03, license.** MIT, copyright "the project contributors" (`0015-license-mit.md`).
+- **2026-10-03, NFR-2 target.** Confirmed at < 40 MB: the empty menu bar app's idle footprint is 12 MB (17 MB in an earlier hand measurement), under the 30 MB revisit threshold (`0016-nfr-2-target.md`, `docs/perf.md`).
+- **2026-10-03, NFR-4 method.** Instruments' App Launch template never finishes for an app without a window, so launch time is measured from a log marker before `open` to the app's "Launched: status item installed" log line. `make perf` (`scripts/measure-baseline.sh`) runs it together with the NFR-2 footprint and writes rows for `docs/perf.md`.

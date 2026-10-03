@@ -37,4 +37,4 @@ Inspired by Scott Jenson's talk [Are we really going to use the same Desktop UX 
 
 ## License
 
-To be decided (MIT or Apache 2.0) before the first public release.
+MIT. See [LICENSE](LICENSE).

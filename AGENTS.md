@@ -24,7 +24,8 @@ make test        # core and app tests
 make build       # build the Debug ("Dev") app
 make run         # build and launch the Dev app
 make format      # fix formatting
-make check       # lint, native-only, and branding checks
+make check       # lint, native-only, branding, and layering checks
+make perf        # Release baseline: idle footprint and launch time (run in Terminal)
 make ci          # everything CI runs
 ```
 
@@ -32,9 +33,9 @@ Build output stays in `.build/`. Debug builds are a separate "Dev" app (bundle i
 
 ## Architecture
 
-`Packages/ScrapKit` has three library targets plus `ScrapTestSupport`; the compiler enforces the layering. Details in `docs/architecture.md`.
+`Packages/ScrapKit` has three library targets plus `ScrapTestSupport`; target dependencies and `scripts/check-layering.sh` enforce the layering (the compiler alone only catches violations on clean builds). Details in `docs/architecture.md`.
 
-- `ScrapModel` (Foundation only): value types, YAML-subset frontmatter codec, fingerprints, fractional `Rank`, text-fragment builder, masonry layout math.
+- `ScrapModel` (Foundation and CryptoKit only): value types, YAML-subset frontmatter codec, fingerprints, fractional `Rank`, text-fragment builder, masonry layout math.
 - `ScrapStorage` (Model + SQLite3): file store actor (atomic writes, FSEvents watcher with self-echo suppression), index actor (SQLite3 C API, FTS5 with FTS4 fallback, reference health), launch reconciliation.
 - `ScrapCapture` (Model + Store): capture pipeline, privacy filter, `ProvenanceProvider` protocol, registry, providers' logic written against system-client protocols (`AppleEventClient`, `AccessibilityClient`, `PasteboardClient`, `WorkspaceClient`, `ThumbnailClient`, `FileSystem`, `WallClock`). Fakes live in the `ScrapTestSupport` target.
 - `App/`: composition root (`AppEnvironment`, no singletons), AppKit shell (menu bar, `NSPanel` shelf, board window with `NSCollectionView`), SwiftUI views inside, and the real system clients. Keep it thin.

@@ -11,7 +11,27 @@ echo "Checking your setup"
 
 [ "$(uname)" = "Darwin" ] || fail "This project builds a macOS app and needs a Mac."
 
-xcodebuild -version >/dev/null 2>&1 || fail "Xcode not found. Install it from the App Store, then run: sudo xcode-select -s /Applications/Xcode.app"
+# The developer directory must be an Xcode app, not the Command Line Tools. xcode-select
+# works before the license is accepted; xcodebuild doesn't, so it waits until after.
+dev=$(xcode-select -p 2>/dev/null || true)
+case "$dev" in
+  *.app/Contents/Developer) ;;
+  *) fail "Xcode not found or not selected (developer directory: ${dev:-none}). Install Xcode from the App Store, then run: sudo xcode-select -s /Applications/Xcode.app" ;;
+esac
+
+# A fresh Xcode install needs its license accepted and its first-launch components
+# installed before swift and xcodebuild can build anything.
+if xcodebuild -license check >/dev/null 2>&1; then
+  ok "Xcode license accepted"
+else
+  fail "Xcode's license hasn't been accepted. Run: sudo xcodebuild -license accept"
+fi
+if xcodebuild -checkFirstLaunchStatus >/dev/null 2>&1; then
+  ok "Xcode first-launch setup done"
+else
+  fail "Xcode's first-launch setup hasn't run. Run: sudo xcodebuild -runFirstLaunch (or open Xcode once)"
+fi
+
 have=$(xcodebuild -version | awk 'NR==1 {print $2}')
 want=$(cat .xcode-version 2>/dev/null || echo "")
 have_mm=$(echo "$have" | cut -d. -f1,2); want_mm=$(echo "$want" | cut -d. -f1,2)
@@ -31,11 +51,15 @@ else
 fi
 
 echo "Running core tests"
-if swift test --package-path Packages/ScrapKit --parallel >/tmp/scrapkit-tests.log 2>&1; then
+# Build output, including this log, stays in .build/ (gitignored).
+log=.build/bootstrap-core-tests.log
+mkdir -p .build
+# SWIFT_TEST_FLAGS as for make test-core, e.g. --disable-sandbox inside an outer sandbox.
+if swift test --package-path Packages/ScrapKit --parallel ${SWIFT_TEST_FLAGS:-} >"$log" 2>&1; then
   ok "Core tests pass"
 else
-  tail -n 30 /tmp/scrapkit-tests.log
-  fail "Core tests failed (full log: /tmp/scrapkit-tests.log)"
+  tail -n 30 "$log"
+  fail "Core tests failed (full log: $log)"
 fi
 
 echo

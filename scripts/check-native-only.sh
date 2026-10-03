@@ -1,8 +1,12 @@
 #!/bin/bash
 # Fails if any third-party Swift package is declared, resolved, or referenced.
 # Local packages (Packages/ScrapKit) are fine.
+#
+# Usage: scripts/check-native-only.sh [root]
+# root defaults to the repository root; scripts/test-checks.sh passes a scratch copy
+# with seeded violations. Exits 1 on a violation, 2 if root doesn't exist.
 set -uo pipefail
-cd "$(git rev-parse --show-toplevel 2>/dev/null || pwd)" || exit 1
+cd "${1:-$(git rev-parse --show-toplevel 2>/dev/null || pwd)}" || exit 2
 fail=0
 
 # 1. Resolved remote packages
