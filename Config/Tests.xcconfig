@@ -6,6 +6,13 @@ PRODUCT_NAME = AppTests
 PRODUCT_MODULE_NAME = AppTests
 PRODUCT_BUNDLE_IDENTIFIER = $(APP_BUNDLE_ID).tests
 
+// The test bundle carries no entitlements and no user-facing strings of its own.
+CODE_SIGN_ENTITLEMENTS =
+INFOPLIST_KEY_LSUIElement =
+INFOPLIST_KEY_CFBundleDisplayName =
+SWIFT_EMIT_LOC_STRINGS = NO
+STRING_CATALOG_GENERATE_SYMBOLS = NO
+
 // Must match PRODUCT_NAME in Debug.xcconfig and Branding.xcconfig.
 APP_PRODUCT_NAME = $(APP_DISPLAY_NAME)
 APP_PRODUCT_NAME[config=Debug] = $(APP_DISPLAY_NAME) Dev

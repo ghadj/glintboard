@@ -1,12 +1,32 @@
 // Shared build settings. Debug and Release include this file.
+// Build settings live here, not in the project file (see docs/plans/M0.md, M0-R1).
 #include "Branding.xcconfig"
 
 MACOSX_DEPLOYMENT_TARGET = 15.0
+SDKROOT = macosx
+SUPPORTED_PLATFORMS = macosx
+SUPPORTS_MACCATALYST = NO
+LD_RUNPATH_SEARCH_PATHS = @executable_path/../Frameworks
+
+MARKETING_VERSION = 1.0
+CURRENT_PROJECT_VERSION = 1
+
 SWIFT_VERSION = 6.0
 SWIFT_STRICT_CONCURRENCY = complete
+SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES
+
+// Menu bar agent: hardened runtime with Apple Events, not sandboxed (the sandbox blocks
+// Accessibility and cross-app Apple Events; see "Distribution" in docs/design.md).
 ENABLE_HARDENED_RUNTIME = YES
+ENABLE_APP_SANDBOX = NO
+CODE_SIGN_ENTITLEMENTS = Config/App.entitlements
 GENERATE_INFOPLIST_FILE = YES
 INFOPLIST_KEY_LSUIElement = YES
+
+// Every user-facing string goes in a String Catalog.
+LOCALIZATION_PREFERS_STRING_CATALOGS = YES
+SWIFT_EMIT_LOC_STRINGS = YES
+STRING_CATALOG_GENERATE_SYMBOLS = YES
 
 // Personal signing settings, if present (gitignored). Included last so it can override.
 #include? "Local.xcconfig"
