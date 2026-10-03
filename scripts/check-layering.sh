@@ -3,10 +3,15 @@
 # this on clean builds: once a sibling module has been built, an incremental build accepts
 # an import the target doesn't depend on (spike S0-1, docs/plans/M0.md).
 #
-# Usage: scripts/check-layering.sh [root]   (root defaults to the repository root)
+# Usage: scripts/check-layering.sh [root]
+# root defaults to the repository root. Exits 1 on a violation, 2 if root doesn't exist.
 set -uo pipefail
 root="${1:-$(git rev-parse --show-toplevel 2>/dev/null || pwd)}"
 src="$root/Packages/ScrapKit/Sources"
+[ -d "$root" ] || {
+  echo "error: $root is not a directory"
+  exit 2
+}
 
 # Imports each target may use, besides Swift itself. Keep in step with the target
 # dependencies in Package.swift and "Module structure" in docs/architecture.md.

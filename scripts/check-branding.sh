@@ -6,8 +6,12 @@
 # file name ("<name>.app", "<name> Dev.app") into the product reference and the
 # schemes' BuildableName, derived from Branding.xcconfig. Xcode rewrites those on
 # a rename, so they're ignored. The name anywhere else still fails.
+#
+# Usage: scripts/check-branding.sh [root]
+# root defaults to the repository root; scripts/test-checks.sh passes a scratch copy
+# with seeded violations. Exits 1 on a violation, 2 if root doesn't exist.
 set -uo pipefail
-cd "$(git rev-parse --show-toplevel 2>/dev/null || pwd)" || exit 1
+cd "${1:-$(git rev-parse --show-toplevel 2>/dev/null || pwd)}" || exit 2
 
 cfg=Config/Branding.xcconfig
 if [ ! -f "$cfg" ]; then echo "branding check skipped: $cfg not found"; exit 0; fi
