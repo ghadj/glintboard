@@ -8,7 +8,7 @@ Everything in `AGENTS.md` applies. These notes cover what only Claude Code has.
 
 The project enables Claude Code's sandbox (`.claude/settings.json`). Inside it:
 
-- Run core tests as `make test-core SWIFT_TEST_FLAGS=--disable-sandbox`. SwiftPM sandboxes its own manifest builds, and macOS doesn't allow one sandbox inside another; the outer sandbox still applies.
+- Don't build or run tests yourself: `swift test`, `xcodebuild`, and `xcrun` write to the per-user temp and cache folders under `/var/folders`, which the sandbox blocks. Ask the user to run the command with `!` and read the output, for example `! make test-app 2>&1 | grep -E "error:|warning:|Test case|\*\* TEST"`. Don't propose changes to the sandbox settings (decision 0014). Lint (`xcrun swift-format lint`), `scripts/check-native-only.sh`, and `scripts/check-branding.sh` do work inside the sandbox.
 - `make run` and `open` need approval and run outside the sandbox, because the sandbox blocks Apple Events.
 - Personal overrides go in `.claude/settings.local.json` (gitignored), never in the shared settings.
 

@@ -72,7 +72,7 @@ A seed tool (`scripts/seed-library`, a small Swift script) generates test librar
 - [ ] Manual: changing `APP_DISPLAY_NAME` and rebuilding renames the app bundle and its menu bar title, with no other edits.
 - [ ] Automated: `ScrapModel` cannot import `ScrapStorage` (a deliberate violation fails to compile; then remove it).
 - [ ] Manual: the app shows a menu bar icon and no Dock icon; Quit exits cleanly.
-- [ ] Manual: Claude Code, started in the repo with the sandbox on, runs the build and tests without prompts beyond first-time approvals.
+- [ ] Manual: Claude Code, started in the repo with the sandbox on, runs lint and the native-only and branding checks without prompts beyond first-time approvals, and gets build and test results by asking the user to run `make` with `!` (decision 0014).
 - [ ] `docs/perf.md` contains the baseline numbers.
 
 ---
@@ -466,3 +466,4 @@ Full notes live in `docs/decisions/`; this is the index.
 - **2026-10-01, unavailable sources.** Sources in the Trash get their own `trashed` status; trashed and missing scraps are never removed automatically and are cleared only by the user with Clear Unavailable. Local file checks run whenever a card is visible (throttled to once a minute), Mail checks only while Mail is running.
 - **2026-10-01, architecture review.** Collections are folders; frontmatter holds only capture facts and user edits, while reference health lives in the index; board order uses fractional ranks so a move writes one file; files are referenced, never copied; retention is opt-in; Apple Events and Accessibility calls always carry short timeouts; the store suppresses its own FSEvents echoes; the board uses a virtualized collection view; the package is split into Model, Store, and Capture targets.
 - **2026-10-03, deployment target.** Minimum macOS 15 instead of 14, for the app and the package (`0013-deployment-target-macos-15.md`).
+- **2026-10-03, builds and tests in Claude Code.** The sandbox blocks the build tools' temp folders and the sandbox settings aren't changed, so the user runs builds and tests and Claude reads the output (`0014-builds-and-tests-run-by-the-user.md`).
