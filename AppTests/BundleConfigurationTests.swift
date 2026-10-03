@@ -18,9 +18,16 @@ struct BundleConfigurationTests {
         #expect(entitlements["com.apple.security.automation.apple-events"] as? Bool == true)
     }
 
-    @Test func usesHardenedRuntime() throws {
-        let flags = try #require(signingInformation()[kSecCodeInfoFlags as String] as? UInt32)
-        #expect(SecCodeSignatureFlags(rawValue: flags).contains(.runtime))
+    /// Xcode leaves hardened runtime out of ad-hoc signatures (CI signs ad hoc), so this only
+    /// runs on team-signed builds. Notarization enforces it for release builds.
+    @Test(
+        .enabled(
+            if: try BundleConfigurationTests.isTeamSigned(),
+            "Xcode drops hardened runtime for ad-hoc signatures"
+        )
+    )
+    func usesHardenedRuntime() throws {
+        #expect(try Self.signatureFlags().contains(.runtime))
     }
 
     @Test func isNotSandboxed() throws {
@@ -36,10 +43,19 @@ struct BundleConfigurationTests {
 
     /// Fails, rather than passing vacuously, when the signature carries no entitlements.
     private func signedEntitlements() throws -> [String: Any] {
-        try #require(signingInformation()[kSecCodeInfoEntitlementsDict as String] as? [String: Any])
+        try #require(Self.signingInformation()[kSecCodeInfoEntitlementsDict as String] as? [String: Any])
     }
 
-    private func signingInformation() throws -> [String: Any] {
+    private static func isTeamSigned() throws -> Bool {
+        try !signatureFlags().contains(.adhoc)
+    }
+
+    private static func signatureFlags() throws -> SecCodeSignatureFlags {
+        let flags = try #require(signingInformation()[kSecCodeInfoFlags as String] as? UInt32)
+        return SecCodeSignatureFlags(rawValue: flags)
+    }
+
+    private static func signingInformation() throws -> [String: Any] {
         var code: SecCode?
         try #require(SecCodeCopySelf([], &code) == errSecSuccess)
         var staticCode: SecStaticCode?
