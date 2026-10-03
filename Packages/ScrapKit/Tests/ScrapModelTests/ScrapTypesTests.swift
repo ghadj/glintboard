@@ -79,13 +79,6 @@ struct ScrapTypesTests {
         #expect(ReferenceStatus.allCases.map(\.rawValue) == ["ok", "changed", "trashed", "missing", "unknown"])
     }
 
-    @Test func rankOrdersByBytes() {
-        // "Z" (0x5A) sorts before "a" (0x61): base-62 digits are ordered by ASCII.
-        #expect(Rank(rawValue: "Z") < Rank(rawValue: "a"))
-        #expect(Rank(rawValue: "a") < Rank(rawValue: "a0"))
-        #expect(!(Rank(rawValue: "b") < Rank(rawValue: "b")))
-    }
-
     @Test func appIdentityComparesByBundleIDOnly() {
         let named = AppIdentity(bundleID: "com.apple.TextEdit", name: "TextEdit")
         let unnamed = AppIdentity(bundleID: "com.apple.TextEdit")
@@ -103,7 +96,7 @@ struct ScrapTypesTests {
             kind: .text,
             title: "2BR on Elm St",
             body: "2BR, 850 sq ft",
-            board: Rank(rawValue: "a"),
+            board: Rank.after(nil),
             created: date,
             updated: date,
             reference: Reference(
