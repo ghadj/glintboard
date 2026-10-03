@@ -48,7 +48,7 @@ Each layer exposes a small public surface; everything else is `internal`. These 
 **ScrapModel**: pure values, no I/O.
 
 ```swift
-public struct ScrapID: Hashable, Sendable, Codable { public let raw: UUID }
+public struct ScrapID: Hashable, Sendable, Codable { public let raw: UUID }   // written as a lowercase UUID string
 
 public struct Scrap: Sendable, Equatable {
     public var id: ScrapID
@@ -63,14 +63,16 @@ public struct Scrap: Sendable, Equatable {
     public var updated: Date
     public var reference: Reference
     public var note: Note?
-    public var extraFrontmatter: [String: FrontmatterValue]  // unknown keys, preserved
+    public var derivedFrom: [ScrapID]      // reserved in schema 1; empty for captures
+    public var aiExcluded: Bool            // reserved in schema 1
+    public var extraFrontmatter: [FrontmatterEntry]  // unknown keys, preserved in file order
 }
 
 public struct Reference: Sendable, Equatable {
     public var provider: ProviderID
     public var app: AppIdentity?
     public var window: String?
-    public var locator: Locator            // .url, .messageID, .file(path:bookmark:), .screenRect
+    public var locator: Locator            // .app, .url, .messageID, .file(path:bookmark:), .screenRect
     public var deepLink: URL?
     public var label: String
     public var fingerprint: Fingerprint
@@ -90,7 +92,7 @@ public struct Rank: Comparable, Sendable, Codable {
 
 ```swift
 public actor ScrapStore {
-    public init(root: URL, fileSystem: FileSystem, clock: WallClock)
+    public init(root: URL, clock: any WallClock)
     public func load() async throws -> LibrarySnapshot
     public func save(_ scrap: Scrap, in collection: CollectionName) async throws
     public func move(_ id: ScrapID, to collection: CollectionName) async throws
@@ -127,7 +129,7 @@ public actor CaptureCoordinator {
 }
 ```
 
-`ProvenanceProvider` and `CaptureContext` are as defined in the design doc. `PasteboardClient`, `WorkspaceClient`, `ThumbnailClient`, `FileSystem`, and `WallClock` follow the same pattern: a protocol in Core, a real implementation in the app, a fake in tests. The clock is named `WallClock` to avoid clashing with Swift's own `Clock` protocol, which is still used (as `any Clock<Duration>`) for sleeps and timeouts.
+`ProvenanceProvider` and `CaptureContext` are as defined in the design doc. `PasteboardClient`, `WorkspaceClient`, and `ThumbnailClient` follow the same pattern: a protocol in Core, a real implementation in the app, a fake in tests. `WallClock` does too, but lives in `ScrapModel`, because the store takes one and `ScrapStorage` can't import `ScrapCapture`. The clock is named `WallClock` to avoid clashing with Swift's own `Clock` protocol, which is still used (as `any Clock<Duration>`) for sleeps and timeouts. The store has no file-system protocol: it uses real files, and its tests use temporary folders (M1 plan, Q8).
 
 ## Runtime flows
 
@@ -325,7 +327,7 @@ Most logic sits below the app layer and runs against fakes, so the automated sui
 | App | `AppTests` (Xcode) | Composition root wiring, `LibraryModel` reacting to change streams, controllers with fake services | Seconds |
 | Manual | Milestone checklists | Panel focus, hotkeys, permissions, live Safari and Mail, performance numbers | Per milestone |
 
-**Fakes.** Every system-client protocol has a fake in a `ScrapTestSupport` target: `FakeAppleEventClient` (scripted replies, configurable delay to test timeouts), `FakeAccessibilityClient`, `FakePasteboard`, `FakeWorkspace` (activation events on demand), `FakeWallClock`, and `InMemoryFileSystem` for pure store logic.
+**Fakes.** Every system-client protocol has a fake in a `ScrapTestSupport` target: `FakeAppleEventClient` (scripted replies, configurable delay to test timeouts), `FakeAccessibilityClient`, `FakePasteboard`, `FakeWorkspace` (activation events on demand), and `FakeWallClock`. The store is tested against real temporary folders (M1 plan, Q8).
 
 **Fixtures.** `Fixtures/Library/` holds hand-written scrap files, including edge cases (unknown keys, every schema version, unsupported YAML, duplicate ids); the seed tool generates the large libraries used for performance.
 

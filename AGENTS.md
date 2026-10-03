@@ -35,9 +35,9 @@ Build output stays in `.build/`. Build, test, check, bootstrap, and perf runs al
 
 `Packages/ScrapKit` has three library targets plus `ScrapTestSupport`; target dependencies and `scripts/check-layering.sh` enforce the layering (the compiler alone only catches violations on clean builds). Details in `docs/architecture.md`.
 
-- `ScrapModel` (Foundation and CryptoKit only): value types, YAML-subset frontmatter codec, fingerprints, fractional `Rank`, text-fragment builder, masonry layout math.
-- `ScrapStorage` (Model + SQLite3): file store actor (atomic writes, FSEvents watcher with self-echo suppression), index actor (SQLite3 C API, FTS5 with FTS4 fallback, reference health), launch reconciliation.
-- `ScrapCapture` (Model + Store): capture pipeline, privacy filter, `ProvenanceProvider` protocol, registry, providers' logic written against system-client protocols (`AppleEventClient`, `AccessibilityClient`, `PasteboardClient`, `WorkspaceClient`, `ThumbnailClient`, `FileSystem`, `WallClock`). Fakes live in the `ScrapTestSupport` target.
+- `ScrapModel` (Foundation and CryptoKit only): value types, YAML-subset frontmatter codec, fingerprints, fractional `Rank`, text-fragment builder, masonry layout math, and the `WallClock` protocol (here so the store can take one too).
+- `ScrapStorage` (Model + SQLite3): file store actor (atomic writes, FSEvents watcher with self-echo suppression), index actor (SQLite3 C API, FTS5 with FTS4 fallback, reference health), launch reconciliation. The store uses real files; its tests use temporary folders.
+- `ScrapCapture` (Model + Store): capture pipeline, privacy filter, `ProvenanceProvider` protocol, registry, providers' logic written against system-client protocols (`AppleEventClient`, `AccessibilityClient`, `PasteboardClient`, `WorkspaceClient`, `ThumbnailClient`). Fakes live in the `ScrapTestSupport` target.
 - `App/`: composition root (`AppEnvironment`, no singletons), AppKit shell (menu bar, `NSPanel` shelf, board window with `NSCollectionView`), SwiftUI views inside, and the real system clients. Keep it thin.
 
 ## Architecture rules (from the design review)

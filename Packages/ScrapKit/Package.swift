@@ -14,6 +14,8 @@ let package = Package(
         .library(name: "ScrapModel", targets: ["ScrapModel"]),
         .library(name: "ScrapStorage", targets: ["ScrapStorage"]),
         .library(name: "ScrapCapture", targets: ["ScrapCapture"]),
+        // Fakes for AppTests. Link it only to test targets, never to the app.
+        .library(name: "ScrapTestSupport", targets: ["ScrapTestSupport"]),
     ],
     targets: [
         // Foundation and CryptoKit only: value types, frontmatter codec, fingerprints, ranks, layout math.
