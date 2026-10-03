@@ -7,7 +7,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         environment = AppEnvironment(appInfo: .main)
-        Logger.app.info("Launched")
+        // Notice level so it's kept in the log store: NFR-4 (launch to menu bar icon) is
+        // measured from `open` to this line's timestamp (docs/perf.md).
+        Logger.app.notice("Launched: status item installed")
     }
 
     func applicationSupportsSecureRestorableState(_ app: NSApplication) -> Bool {

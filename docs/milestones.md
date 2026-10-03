@@ -27,9 +27,9 @@ From the design doc's resource budget. Release blockers. Measure on an M1 MacBoo
 | ID | Requirement | Target | How to measure |
 | --- | --- | --- | --- |
 | NFR-1 | Idle CPU, default mode | 0% (no periodic work) | Activity Monitor, 5 minutes idle, shelf closed |
-| NFR-2 | Memory, shelf closed | < 40 MB (confirmed against the M0 baseline) | `footprint Glintboard` after closing the shelf |
+| NFR-2 | Memory, shelf closed | < 40 MB (confirmed against the M0 baseline) | `make perf` (`footprint` a minute after launch, shelf closed) |
 | NFR-3 | Memory, shelf open, 500 scraps | < 80 MB | `footprint` with the 500-scrap seed library |
-| NFR-4 | Launch to menu bar icon | < 0.5 s | Instruments App Launch template |
+| NFR-4 | Launch to menu bar icon | < 0.5 s | `make perf`: from a log marker just before `open` to the app's "Launched: status item installed" log line (Instruments' App Launch template doesn't finish for an app without a window) |
 | NFR-5 | Capture to card visible | < 150 ms | Signposts from trigger to card render |
 | NFR-6 | Energy Impact | "Low" | Activity Monitor Energy tab, normal use |
 | NFR-7 | App size | < 15 MB | Size of the notarized `.app` |
@@ -451,7 +451,6 @@ Passive clipboard capture, web reference checks, browsers other than Safari, AI 
 | Safari private-window policy | Outcome of spike S2-1 | End of M2 |
 | Default hotkeys | ⌃⌥C / ⌃⌥V / ⌃⌥S, or other after collision testing | Start of M3 |
 | Clipboard after paste back | Restore previous (proposed) or keep scrap | Start of M3 |
-| NFR-2 target | Confirm or adjust after the M0 baseline | End of M0 |
 | Final name | Glintboard, pending availability checks | M6 |
 | Developer ID | Paid Apple Developer Program membership | Start of M6 |
 
@@ -469,3 +468,5 @@ Full notes live in `docs/decisions/`; this is the index.
 - **2026-10-03, builds and tests in Claude Code.** The sandbox blocks the build tools' temp folders and the sandbox settings aren't changed, so the user runs builds and tests and Claude reads the output (`0014-builds-and-tests-run-by-the-user.md`).
 - **2026-10-03, decision records.** The structural decisions above are written up as records 0001–0012 in `docs/decisions/` (native only, files as source of truth, collections as folders, health in the index, fractional ranks, package layering, the system-client actor, AppKit and SwiftUI split, composition root, brand-neutral naming, AI readiness, one query tool set).
 - **2026-10-03, license.** MIT, copyright "the project contributors" (`0015-license-mit.md`).
+- **2026-10-03, NFR-2 target.** Confirmed at < 40 MB: the empty menu bar app's idle footprint is 12 MB (17 MB in an earlier hand measurement), under the 30 MB revisit threshold (`0016-nfr-2-target.md`, `docs/perf.md`).
+- **2026-10-03, NFR-4 method.** Instruments' App Launch template never finishes for an app without a window, so launch time is measured from a log marker before `open` to the app's "Launched: status item installed" log line. `make perf` (`scripts/measure-baseline.sh`) runs it together with the NFR-2 footprint and writes rows for `docs/perf.md`.

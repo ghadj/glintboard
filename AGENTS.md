@@ -25,6 +25,7 @@ make build       # build the Debug ("Dev") app
 make run         # build and launch the Dev app
 make format      # fix formatting
 make check       # lint, native-only, branding, and layering checks
+make perf        # Release baseline: idle footprint and launch time (run in Terminal)
 make ci          # everything CI runs
 ```
 

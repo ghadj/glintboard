@@ -8,10 +8,11 @@ PACKAGE     := Packages/ScrapKit
 # Extra flags, e.g. XCB_FLAGS="CODE_SIGN_IDENTITY=- CODE_SIGN_STYLE=Manual DEVELOPMENT_TEAM=" in CI,
 # or SWIFT_TEST_FLAGS=--disable-sandbox inside Claude Code's sandbox.
 XCB_FLAGS        ?=
+PERF_FLAGS       ?=
 SWIFT_TEST_FLAGS ?=
 
 .DEFAULT_GOAL := help
-.PHONY: help bootstrap test test-core test-app build run lint format check ci clean
+.PHONY: help bootstrap test test-core test-app build run lint format check perf ci clean
 
 help: ## List available targets
 	@grep -E '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  %-11s %s\n", $$1, $$2}'
@@ -44,6 +45,9 @@ check: lint ## Lint plus native-only, branding, and layering checks, and their s
 	scripts/check-branding.sh
 	scripts/check-layering.sh
 	scripts/test-checks.sh
+
+perf: ## Measure the Release baseline (NFR-2, NFR-4); e.g. PERF_FLAGS="--milestone M1 --record"
+	XCB_FLAGS="$(XCB_FLAGS)" scripts/measure-baseline.sh $(PERF_FLAGS)
 
 ci: check test ## Everything CI runs
 
