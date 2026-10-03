@@ -6,6 +6,13 @@
 	objectVersion = 90;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		5EC81E2730719A3A00452F3A /* ScrapCapture in Frameworks */ = {isa = PBXBuildFile; productRef = 5EC81E2630719A3A00452F3A /* ScrapCapture */; };
+		5EC81E2930719A3A00452F3A /* ScrapModel in Frameworks */ = {isa = PBXBuildFile; productRef = 5EC81E2830719A3A00452F3A /* ScrapModel */; };
+		5EC81E2B30719A3A00452F3A /* ScrapStorage in Frameworks */ = {isa = PBXBuildFile; productRef = 5EC81E2A30719A3A00452F3A /* ScrapStorage */; };
+		5EC81E2D30719A3A00452F3A /* ScrapTestSupport in Frameworks */ = {isa = PBXBuildFile; productRef = 5EC81E2C30719A3A00452F3A /* ScrapTestSupport */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		5E280A71306EE40E004F92C8 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -45,11 +52,15 @@
 		000000000000000130000000 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			files = (
+				5EC81E2930719A3A00452F3A /* ScrapModel in Frameworks */,
+				5EC81E2B30719A3A00452F3A /* ScrapStorage in Frameworks */,
+				5EC81E2730719A3A00452F3A /* ScrapCapture in Frameworks */,
 			);
 		};
 		5E280A6A306EE40E004F92C8 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			files = (
+				5EC81E2D30719A3A00452F3A /* ScrapTestSupport in Frameworks */,
 			);
 		};
 /* End PBXFrameworksBuildPhase section */
@@ -105,6 +116,11 @@
 				000000000000000000000010 /* App */,
 			);
 			name = App;
+			packageProductDependencies = (
+				5EC81E2630719A3A00452F3A /* ScrapCapture */,
+				5EC81E2830719A3A00452F3A /* ScrapModel */,
+				5EC81E2A30719A3A00452F3A /* ScrapStorage */,
+			);
 			productName = MyApp;
 			productReference = 000000000000000000000120 /* Glintboard Dev.app */;
 			productType = "com.apple.product-type.application";
@@ -126,6 +142,9 @@
 				5E280A6E306EE40E004F92C8 /* AppTests */,
 			);
 			name = AppTests;
+			packageProductDependencies = (
+				5EC81E2C30719A3A00452F3A /* ScrapTestSupport */,
+			);
 			productName = AppTests;
 			productReference = 5E280A6D306EE40E004F92C8 /* AppTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
@@ -158,6 +177,9 @@
 			);
 			mainGroup = 000000000000000000000001;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				5EC81E2530719A3A00452F3A /* XCLocalSwiftPackageReference "Packages/ScrapKit" */,
+			);
 			preferredProjectObjectVersion = 90;
 			productRefGroup = 000000000000000000000020 /* Products */;
 			projectDirPath = "";
@@ -376,6 +398,32 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCLocalSwiftPackageReference section */
+		5EC81E2530719A3A00452F3A /* XCLocalSwiftPackageReference "Packages/ScrapKit" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = Packages/ScrapKit;
+		};
+/* End XCLocalSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		5EC81E2630719A3A00452F3A /* ScrapCapture */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = ScrapCapture;
+		};
+		5EC81E2830719A3A00452F3A /* ScrapModel */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = ScrapModel;
+		};
+		5EC81E2A30719A3A00452F3A /* ScrapStorage */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = ScrapStorage;
+		};
+		5EC81E2C30719A3A00452F3A /* ScrapTestSupport */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = ScrapTestSupport;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 000000000000000000000000 /* Project object */;
 }
