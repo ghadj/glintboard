@@ -481,6 +481,7 @@ The product name lives in one build-settings file; code and modules use neutral 
 
 - Swift code never contains the product name as a literal. User-facing text interpolates `AppInfo.displayName`; String Catalog entries use a placeholder for it.
 - `Info.plist` privacy strings either avoid the name or use `$(PRODUCT_NAME)`, which Xcode expands at build time.
+- There is no `InfoPlist.xcstrings` for now. When one exists, Xcode copies `CFBundleName` and `CFBundleDisplayName` into it with the product name on every IDE build, which breaks the branding check and overrides the Dev build's name at runtime. Info.plist strings stay English-only until a second language is added; that needs its own decision.
 - `scripts/check-branding.sh` runs in CI and fails if the display name appears anywhere in `App/` or `Packages/` outside `Config/Branding.xcconfig`.
 - "Scrap" is the domain word for the modules because it won't change with the brand, and the prefix avoids a module sharing a name with one of its own types.
 - Debug builds append `.dev` to the bundle identifier and "Dev" to the display name (in `Config/Debug.xcconfig`), so a contributor's dev build never shares data, preferences, or permissions with an installed release.

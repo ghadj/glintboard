@@ -1,0 +1,45 @@
+{
+  "sourceLanguage" : "en",
+  "strings" : {
+    "Hello, world!" : {
+
+    },
+    "Quit %@" : {
+      "comment" : "Status menu item that quits the app. %@ is the app's display name (AppInfo.displayName).",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Quit %@"
+          }
+        }
+      }
+    },
+    "Settings…" : {
+      "comment" : "Status menu item that opens Settings.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Settings…"
+          }
+        }
+      }
+    },
+    "Show Shelf" : {
+      "comment" : "Status menu item that opens the shelf panel.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Show Shelf"
+          }
+        }
+      }
+    }
+  },
+  "version" : "1.0"
+}

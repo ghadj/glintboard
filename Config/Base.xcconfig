@@ -22,6 +22,9 @@ ENABLE_APP_SANDBOX = NO
 CODE_SIGN_ENTITLEMENTS = Config/App.entitlements
 GENERATE_INFOPLIST_FILE = YES
 INFOPLIST_KEY_LSUIElement = YES
+// Shown under "<app> wants access to control Safari/Mail". Never uses the product name.
+// English only for now; see "Naming and branding" in docs/architecture.md on InfoPlist.xcstrings.
+INFOPLIST_KEY_NSAppleEventsUsageDescription = Lets you capture the current page from Safari and the selected message from Mail, so each scrap can link back to where it came from.
 
 // Every user-facing string goes in a String Catalog.
 LOCALIZATION_PREFERS_STRING_CATALOGS = YES

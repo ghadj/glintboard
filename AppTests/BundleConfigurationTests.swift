@@ -13,6 +13,20 @@ struct BundleConfigurationTests {
         #expect(Bundle.main.object(forInfoDictionaryKey: "LSMinimumSystemVersion") as? String == "15.0")
     }
 
+    /// Reads Info.plist itself: `object(forInfoDictionaryKey:)` would return the catalog's
+    /// translation and hide a missing key, which macOS needs before it shows the prompt.
+    @Test func appleEventsUsageDescriptionIsPresent() throws {
+        let description = try #require(Bundle.main.infoDictionary?["NSAppleEventsUsageDescription"] as? String)
+        #expect(!description.isEmpty)
+        #expect(description.localizedStandardContains("Safari"))
+        #expect(description.localizedStandardContains("Mail"))
+    }
+
+    @Test func stringCatalogIsBundled() throws {
+        let catalog = try englishStringsTable("Localizable")
+        #expect(catalog["Show Shelf"] == "Show Shelf")
+    }
+
     @Test func hasAppleEventsEntitlement() throws {
         let entitlements = try signedEntitlements()
         #expect(entitlements["com.apple.security.automation.apple-events"] as? Bool == true)
@@ -40,6 +54,14 @@ struct BundleConfigurationTests {
             #expect(Bundle.main.bundleIdentifier?.hasSuffix(".dev") == true)
         }
     #endif
+
+    /// The compiled English table from a String Catalog, independent of the test host's language.
+    private func englishStringsTable(_ table: String) throws -> [String: String] {
+        let path = try #require(
+            Bundle.main.path(forResource: table, ofType: "strings", inDirectory: nil, forLocalization: "en")
+        )
+        return try #require(NSDictionary(contentsOfFile: path) as? [String: String])
+    }
 
     /// Fails, rather than passing vacuously, when the signature carries no entitlements.
     private func signedEntitlements() throws -> [String: Any] {
