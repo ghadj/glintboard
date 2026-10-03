@@ -1,9 +1,6 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
-    "Hello, world!" : {
-
-    },
     "Quit %@" : {
       "comment" : "Status menu item that quits the app. %@ is the app's display name (AppInfo.displayName).",
       "extractionState" : "manual",
