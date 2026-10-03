@@ -54,7 +54,7 @@ echo "Running core tests"
 # Build output, including this log, stays in .build/ (gitignored).
 log=.build/bootstrap-core-tests.log
 mkdir -p .build
-# SWIFT_TEST_FLAGS as for make test-core, e.g. --disable-sandbox inside an outer sandbox.
+# SWIFT_TEST_FLAGS as for make test-core.
 if swift test --package-path Packages/ScrapKit --parallel ${SWIFT_TEST_FLAGS:-} >"$log" 2>&1; then
   ok "Core tests pass"
 else

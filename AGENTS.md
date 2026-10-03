@@ -29,7 +29,7 @@ make perf        # Release baseline: idle footprint and launch time (run in Term
 make ci          # everything CI runs
 ```
 
-Build output stays in `.build/`. Debug builds are a separate "Dev" app (bundle id ending in `.dev`) with their own data folder and permissions, so they never touch an installed release. CI builds ad-hoc signed (`XCB_FLAGS="CODE_SIGN_IDENTITY=- CODE_SIGN_STYLE=Manual DEVELOPMENT_TEAM="`), because Apple silicon won't run unsigned code; locally, put your Team ID in `Config/Local.xcconfig` so permissions survive rebuilds.
+Build output stays in `.build/`. Build, test, check, bootstrap, and perf runs also save their output to `.build/logs/<target>.log` and a summary to `.build/logs/summary.md`, so results of a run in Terminal can be read afterwards. Debug builds are a separate "Dev" app (bundle id ending in `.dev`) with their own data folder and permissions, so they never touch an installed release. CI builds ad-hoc signed (`XCB_FLAGS="CODE_SIGN_IDENTITY=- CODE_SIGN_STYLE=Manual DEVELOPMENT_TEAM="`), because Apple silicon won't run unsigned code; locally, put your Team ID in `Config/Local.xcconfig` so permissions survive rebuilds.
 
 ## Architecture
 
@@ -72,6 +72,7 @@ Build output stays in `.build/`. Debug builds are a separate "Dev" app (bundle i
 - The Xcode project uses synchronized folders, so new files need no project edits. Build settings live in `Config/*.xcconfig`. For new targets or build phases, ask me to do it in Xcode.
 - Behavior that differs from `docs/design.md` needs a design doc update and a decision note (`/decision`) in the same commit.
 - When two sessions run in parallel, Core work and App work stay in separate worktrees and touch separate directories.
+- After building in the Xcode app, run `git status` before committing. Xcode rewrites some files on its own: it updates the product file name in `project.pbxproj` when `APP_DISPLAY_NAME` changes, and adds Info.plist keys (with the product name) to any `InfoPlist.xcstrings`. Revert what you didn't mean to change.
 
 ## Ask before doing any of these
 
