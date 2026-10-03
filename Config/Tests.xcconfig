@@ -1,0 +1,13 @@
+// Settings for the AppTests target. The host app's name comes from Branding.xcconfig,
+// so a rename never breaks TEST_HOST.
+#include "Base.xcconfig"
+
+PRODUCT_NAME = AppTests
+PRODUCT_MODULE_NAME = AppTests
+PRODUCT_BUNDLE_IDENTIFIER = $(APP_BUNDLE_ID).tests
+
+// Must match PRODUCT_NAME in Debug.xcconfig and Branding.xcconfig.
+APP_PRODUCT_NAME = $(APP_DISPLAY_NAME)
+APP_PRODUCT_NAME[config=Debug] = $(APP_DISPLAY_NAME) Dev
+TEST_HOST = $(BUILT_PRODUCTS_DIR)/$(APP_PRODUCT_NAME).app/Contents/MacOS/$(APP_PRODUCT_NAME)
+BUNDLE_LOADER = $(TEST_HOST)
