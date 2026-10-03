@@ -59,13 +59,13 @@ A seed tool (`scripts/seed-library`, a small Swift script) generates test librar
 - **M0-R9** `App` The empty app shows a menu bar icon with a menu (Show Shelf, Settings…, Quit). Show Shelf and Settings are stubs.
 - **M0-R10** `App` Baseline: physical footprint and launch time of the empty menu bar app are measured and recorded in `docs/perf.md`. If the idle footprint exceeds 30 MB, NFR-2 is revisited before M1 starts.
 - **M0-R11** `App` Brand-neutral naming: `AppInfo` exposes the display name and bundle identifier read from `Info.plist`; loggers and signposts use the bundle identifier as subsystem; `scripts/check-branding.sh` runs in CI. See "Naming and branding" in `docs/architecture.md`.
-- **M0-R12** `Core` Contributor onboarding: `.xcode-version` pins the Xcode version for contributors and CI; `make bootstrap` checks the toolchain, creates `Config/Local.xcconfig` from its example, and runs core tests; Debug builds are a separate Dev app (bundle id suffix `.dev`, own data folder and permissions) so contributors' installed copies are never touched. No tools beyond Xcode are required.
+- **M0-R12** `Core` Contributor onboarding: `.xcode-version` pins the Xcode version for contributors and CI; `make bootstrap` checks the toolchain, creates `Config/Local.xcconfig` from its example, and runs core tests; Debug builds are a separate Dev app (bundle id suffix `.dev`, so its own preferences and permissions, and from M1 its own data folder) so contributors' installed copies are never touched. No tools beyond Xcode are required.
 
 ### Acceptance criteria
 
 - [ ] Automated: a fresh clone builds and tests with `make ci`, without opening Xcode.
 - [ ] Manual: on a Mac with only Xcode installed, `git clone`, `make bootstrap`, and `make run` launch the Dev app with no other steps.
-- [ ] Manual: running the Dev app alongside an installed release keeps separate data folders and separate permission entries.
+- [ ] Manual: running the Dev app alongside an installed release keeps separate preferences and separate permission entries. (The data-folder half moved to M1, which first creates the folder; 2026-10-03.)
 - [ ] Automated: CI passes on the first PR.
 - [ ] Automated: on a scratch branch, adding any package dependency makes the native-only check fail in CI.
 - [ ] Automated: on a scratch branch, writing the product name in a Swift file makes the branding check fail in CI.
@@ -136,6 +136,7 @@ A seed tool (`scripts/seed-library`, a small Swift script) generates test librar
 - [ ] Manual: after opening the shelf, the previous app is still frontmost, and arrow keys move the selection.
 - [ ] Manual: editing a scrap's body in another editor updates the card within 1 s; deleting the file removes it.
 - [ ] Manual: dragging a text scrap into TextEdit inserts rich text with a link; into a plain-text field, plain text.
+- [ ] Manual: running the Dev app alongside an installed release keeps separate data folders (`~/Library/Application Support/<bundle id>/Library` and `~/Library/Application Support/<bundle id>.dev/Library`). Moved from M0 (M0-R12).
 - [ ] NFR-1, NFR-2, NFR-4 measured and recorded.
 
 ---

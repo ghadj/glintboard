@@ -17,7 +17,7 @@ help: ## List available targets
 	@grep -E '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  %-11s %s\n", $$1, $$2}'
 
 bootstrap: ## First-time setup: check tools, create local config, run core tests
-	@scripts/bootstrap.sh
+	@SWIFT_TEST_FLAGS="$(SWIFT_TEST_FLAGS)" scripts/bootstrap.sh
 
 test-core: ## Fast package tests (run constantly)
 	swift test --package-path $(PACKAGE) --parallel $(SWIFT_TEST_FLAGS)
