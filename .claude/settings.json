@@ -29,6 +29,13 @@
       "Bash(make ci*)",
       "Bash(scripts/check-branding.sh*)"
     ],
+    "deny": [
+      "Read(~/.ssh/**)",
+      "Read(~/Library/Mail/**)",
+      "Read(~/Library/Keychains/**)",
+      "Bash(git push --force*)",
+      "Bash(git reset --hard*)"
+    ],
     "ask": [
       "Bash(git push *)",
       "Bash(open *)",
@@ -40,42 +47,7 @@
       "Bash(make run*)",
       "Bash(make clean*)",
       "Bash(make bootstrap*)"
-    ],
-    "deny": [
-      "Read(~/.ssh/**)",
-      "Read(~/Library/Mail/**)",
-      "Read(~/Library/Keychains/**)",
-      "Bash(git push --force*)",
-      "Bash(git reset --hard*)"
     ]
-  },
-  "sandbox": {
-    "enabled": true,
-    "filesystem": {
-      "allowWrite": [
-        "~/Library/Caches/org.swift.swiftpm",
-        "~/Library/org.swift.swiftpm"
-      ]
-    },
-    "network": {
-      "allowedDomains": [
-        "github.com",
-        "*.github.com",
-        "*.githubusercontent.com"
-      ]
-    },
-    "credentials": {
-      "files": [
-        {
-          "path": "~/.ssh",
-          "mode": "deny"
-        },
-        {
-          "path": "~/Library/Mail",
-          "mode": "deny"
-        }
-      ]
-    }
   },
   "hooks": {
     "PostToolUse": [
@@ -100,5 +72,37 @@
         ]
       }
     ]
+  },
+  "enabledPlugins": {
+    "swift-lsp@claude-plugins-official": true,
+    "code-simplifier@claude-plugins-official": true
+  },
+  "sandbox": {
+    "enabled": true,
+    "network": {
+      "allowedDomains": [
+        "github.com",
+        "*.github.com",
+        "*.githubusercontent.com"
+      ]
+    },
+    "filesystem": {
+      "allowWrite": [
+        "~/Library/Caches/org.swift.swiftpm",
+        "~/Library/org.swift.swiftpm"
+      ]
+    },
+    "credentials": {
+      "files": [
+        {
+          "path": "~/.ssh",
+          "mode": "deny"
+        },
+        {
+          "path": "~/Library/Mail",
+          "mode": "deny"
+        }
+      ]
+    }
   }
 }
