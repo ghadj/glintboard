@@ -70,15 +70,30 @@ write_summary
 
 # This run's targets, oldest first, so the last one finished is at the bottom.
 print_run_summary() {
-  local f n bold="" green="" red="" reset=""
+  local f n files="" total=0 failed=0 title colour rule bold="" dim="" green="" red="" reset=""
   if [ -t 1 ]; then
-    bold=$'\e[1m' green=$'\e[32m' red=$'\e[31m' reset=$'\e[0m'
+    bold=$'\e[1m' dim=$'\e[2m' green=$'\e[32m' red=$'\e[31m' reset=$'\e[0m'
   fi
-  echo
-  echo "${bold}==================== Summary of this run ====================${reset}"
   for f in $(ls -tr "$dir"/*.summary 2>/dev/null); do
     n=$(basename "$f" .summary)
     [ "$(cat "$dir/$n.run" 2>/dev/null)" = "$run" ] || continue
+    files="$files $f"
+    total=$((total + 1))
+    head -1 "$f" | grep -q ': PASS$' || failed=$((failed + 1))
+  done
+  if [ "$failed" -eq 0 ]; then
+    colour=$green
+    if [ "$total" -eq 1 ]; then title="✔ Passed"; else title="✔ All $total targets passed"; fi
+  else
+    colour=$red title="✘ $failed of $total targets failed"
+    [ "$total" -eq 1 ] && title="✘ Failed"
+  fi
+  rule="────────────────────────────────────────────────────────────"
+  echo
+  echo "${dim}${rule}${reset}"
+  echo "  ${bold}${colour}${title}${reset}${dim}  ·  summary of this run${reset}"
+  echo "${dim}${rule}${reset}"
+  for f in $files; do
     echo
     sed -E \
       -e "s/^## (.*): PASS$/${bold}\\1: ${green}PASS${reset}/" \
@@ -86,7 +101,7 @@ print_run_summary() {
       -e "s/^### (.*)$/${bold}\\1${reset}/" "$f"
   done
   echo
-  echo "Saved to $dir/summary.md; full logs in $dir/<target>.log"
+  echo "${dim}Saved to $dir/summary.md; full logs in $dir/<target>.log${reset}"
 }
 print_run_summary
 
