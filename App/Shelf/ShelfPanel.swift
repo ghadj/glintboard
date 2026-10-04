@@ -11,7 +11,7 @@ final class ShelfPanel: NSPanel {
 
     init() {
         super.init(
-            contentRect: NSRect(x: 0, y: 0, width: 300, height: 520),
+            contentRect: NSRect(origin: .zero, size: ShelfGeometry.defaultSize),
             // Set at creation (decision 0018).
             styleMask: [.nonactivatingPanel, .titled, .resizable, .fullSizeContentView],
             backing: .buffered,
@@ -22,6 +22,9 @@ final class ShelfPanel: NSPanel {
         hidesOnDeactivate = false
         becomesKeyOnlyIfNeeded = false
         isReleasedWhenClosed = false
+        // The content fills the frame (full-size content view), so these bound the frame too.
+        contentMinSize = ShelfGeometry.minSize
+        contentMaxSize = NSSize(width: ShelfGeometry.maxWidth, height: .greatestFiniteMagnitude)
         collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary, .ignoresCycle]
         titleVisibility = .hidden
         titlebarAppearsTransparent = true

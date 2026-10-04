@@ -50,7 +50,7 @@ struct StatusMenuTests {
 
     /// AppInfo → MenuBarController → StatusMenu: the in-app half of the rename check.
     @Test func statusItemShowsDisplayName() throws {
-        let controller = MenuBarController(appInfo: appInfo, shelf: ShelfPanelController { NSView() })
+        let controller = MenuBarController(appInfo: appInfo, shelf: .forTesting(defaults: TestDefaults()))
         defer { NSStatusBar.system.removeStatusItem(controller.statusItem) }
         let button = try #require(controller.statusItem.button)
         #expect(button.toolTip == "Example")

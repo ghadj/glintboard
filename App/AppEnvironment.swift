@@ -14,11 +14,18 @@ final class AppEnvironment {
 
     init(appInfo: AppInfo) {
         self.appInfo = appInfo
-        // The shelf's SwiftUI content arrives with M1-R17.
-        shelf = ShelfPanelController { NSView() }
-        menuBar = MenuBarController(appInfo: appInfo, shelf: shelf)
         workspace = SystemWorkspaceClient()
         lastExternalApp = LastExternalAppTracker(workspace: workspace, ownBundleID: appInfo.bundleIdentifier)
         Task { [lastExternalApp] in await lastExternalApp.start() }
+        shelf = ShelfPanelController(
+            workspace: workspace,
+            ownBundleID: appInfo.bundleIdentifier,
+            openedOver: { [lastExternalApp] in lastExternalApp.current },
+            frameStore: ShelfFrameStore(defaults: .standard),
+            displays: SystemShelfDisplays(),
+            // The shelf's SwiftUI content arrives with M1-R17.
+            makeContent: { NSView() }
+        )
+        menuBar = MenuBarController(appInfo: appInfo, shelf: shelf)
     }
 }

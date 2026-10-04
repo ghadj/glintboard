@@ -44,15 +44,4 @@ struct LastExternalAppTrackerTests {
 
         #expect(tracker.current == textEdit)
     }
-
-    /// Lets other main-actor work run until `condition` holds, failing after 5 s. It yields
-    /// rather than sleeping, so it returns as soon as the tracker has caught up.
-    private func eventually(_ condition: () -> Bool) async -> Bool {
-        let deadline = ContinuousClock.now + .seconds(5)
-        while !condition() {
-            if ContinuousClock.now >= deadline { return false }
-            await Task.yield()
-        }
-        return true
-    }
 }

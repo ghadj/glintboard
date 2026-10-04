@@ -22,8 +22,9 @@ final class MenuBarController: NSObject, StatusMenuActions {
         statusItem.menu = StatusMenu.make(appName: appInfo.displayName, actions: self)
     }
 
+    /// Opens the shelf, or closes it if it's open (decision 0018).
     func showShelf(_ sender: Any?) {
-        shelf.show()
+        shelf.toggle()
     }
 
     func showSettings(_ sender: Any?) {
