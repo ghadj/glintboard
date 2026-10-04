@@ -1,5 +1,6 @@
 import Foundation
 import ScrapModel
+import os
 
 /// The library folder: collections as folders, scraps as Markdown files. The only type that
 /// touches the folder. Paths it takes and reports are relative to `root`.
@@ -14,16 +15,40 @@ public actor ScrapStore {
         self.clock = clock
     }
 
-    /// Creates the root and the Inbox, with its `.collection.json`, if they're missing.
-    /// Existing files are left as they are.
+    /// Creates the root and the Inbox, with its `.collection.json`, if they're missing, and
+    /// removes temporary files left by writes a crash interrupted. Existing files are left as
+    /// they are.
     public func open() throws(StoreError) {
         try createFolder(root, path: "")
         let inbox = folder(for: .inbox)
         try createFolder(inbox, path: CollectionName.inbox.rawValue)
         let collectionFile = inbox.appending(path: LibraryLayout.collectionFileName)
+        // Checked first, so a normal launch writes nothing; the create-only write still never
+        // replaces a file that appeared in between.
         if !files.fileExists(atPath: collectionFile.path(percentEncoded: false)) {
             let info = CollectionInfo(name: CollectionName.inbox.rawValue, order: 0, created: clock.now())
-            try write(try CollectionFile.encode(info), to: collectionFile, path: relativePath(of: collectionFile))
+            try AtomicFileWriter.write(
+                try CollectionFile.encode(info), to: collectionFile, label: relativePath(of: collectionFile),
+                mode: .createOnly)
+        }
+        removeLeftoverTemporaryFiles()
+    }
+
+    /// Temporary files in collection folders and their `assets/` folders are what a write
+    /// interrupted by a crash leaves behind; the files they were replacing are intact.
+    private func removeLeftoverTemporaryFiles() {
+        var removed = 0
+        // Best effort: the root was just created or listed, and a leftover that stays is harmless.
+        for collection in (try? collectionFolders()) ?? [] {
+            for folder in [collection, collection.appending(path: LibraryLayout.assetsFolderName)] {
+                let names = (try? files.contentsOfDirectory(atPath: folder.path(percentEncoded: false))) ?? []
+                for name in names where AtomicFileWriter.isTemporaryName(name) {
+                    if (try? files.removeItem(at: folder.appending(path: name))) != nil { removed += 1 }
+                }
+            }
+        }
+        if removed > 0 {
+            Logger.store.notice("Removed \(removed) temporary files left by interrupted writes")
         }
     }
 
@@ -53,6 +78,32 @@ public actor ScrapStore {
         return result.sorted { ($0.order, $0.name) < ($1.order, $1.name) }
     }
 
+    /// Every scrap file: the `.md` files directly inside collection folders, sorted by path.
+    /// Hidden files (temporary files among them) and other folders' contents aren't included.
+    public func scan() throws(StoreError) -> [ScrapFileInfo] {
+        let keys: [URLResourceKey] = [.isRegularFileKey, .contentModificationDateKey, .fileSizeKey]
+        var result: [ScrapFileInfo] = []
+        for collection in try collectionFolders() {
+            let entries: [URL]
+            do {
+                entries = try files.contentsOfDirectory(
+                    at: collection, includingPropertiesForKeys: keys, options: [.skipsHiddenFiles])
+            } catch {
+                throw .readFailed(path: relativePath(of: collection))
+            }
+            for entry in entries where entry.pathExtension.lowercased() == "md" {
+                guard let values = try? entry.resourceValues(forKeys: Set(keys)), values.isRegularFile == true else {
+                    continue
+                }
+                result.append(
+                    ScrapFileInfo(
+                        path: relativePath(of: entry), modified: values.contentModificationDate ?? .distantPast,
+                        size: values.fileSize ?? 0))
+            }
+        }
+        return result.sorted { $0.path < $1.path }
+    }
+
     /// Reads the scrap file at `relativePath`. Its id comes from its frontmatter.
     public func scrap(atPath relativePath: String) throws(StoreError) -> Scrap {
         let data: Data
@@ -80,20 +131,28 @@ public actor ScrapStore {
         return path.hasPrefix(rootPath) ? String(path.dropFirst(rootPath.count)) : path
     }
 
+    /// Folders under the root that are collections: not hidden, and valid collection names.
+    /// Throws when the root can't be listed, so callers never mistake an unreadable or missing
+    /// library for an empty one.
+    private func collectionFolders() throws(StoreError) -> [URL] {
+        let entries: [URL]
+        do {
+            entries = try files.contentsOfDirectory(
+                at: root, includingPropertiesForKeys: [.isDirectoryKey], options: [.skipsHiddenFiles])
+        } catch {
+            throw .readFailed(path: "")
+        }
+        return entries.filter { entry in
+            (try? entry.resourceValues(forKeys: [.isDirectoryKey]))?.isDirectory == true
+                && CollectionName(entry.lastPathComponent) != nil
+        }
+    }
+
     private func createFolder(_ url: URL, path: String) throws(StoreError) {
         do {
             try files.createDirectory(at: url, withIntermediateDirectories: true)
         } catch {
             throw .cannotCreateFolder(path: path)
-        }
-    }
-
-    // Replaced by the atomic writer in M1-R6.
-    private func write(_ data: Data, to url: URL, path: String) throws(StoreError) {
-        do {
-            try data.write(to: url, options: .atomic)
-        } catch {
-            throw .writeFailed(path: path)
         }
     }
 }
