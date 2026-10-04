@@ -60,9 +60,9 @@ A scrap is content plus exactly one reference; the reference is where the value 
 | Field | Type | Notes |
 | --- | --- | --- |
 | provider | string | safari, mail, files, screenshot, fallback |
-| app | bundle id + name | Always present, from the frontmost app |
+| app | bundle id | From the last external frontmost app; left out only when none was known. The name is looked up when shown |
 | window | string | Window title at capture time |
-| locator | provider-specific | URL, Message-ID, file path plus base64 bookmark, or capture rect |
+| locator | provider-specific | URL, Message-ID, file path (with its base64 bookmark in a `bookmark` key beside it), or capture rect |
 | deepLink | URL | What "Open source" launches, e.g. text-fragment URL or message:// |
 | label | string | Short line shown on the card, e.g. "zillow.com" or "Mail · landlord" |
 | fingerprint | hash | SHA-256 of the captured text after NFC and whitespace normalization (image bytes for images); used for change detection and duplicates |
@@ -335,14 +335,14 @@ Library/
 ---
 schema: 1
 id: "8f3a0c2d-5d0f-4c8e-9a51-3c1e7a2b71e4"
-kind: text
+kind: "text"
 title: "2BR on Elm St"
 pinned: false
 board: "a3"
 created: 2026-09-29T14:02:11Z
 updated: 2026-09-29T14:02:11Z
 reference:
-  provider: safari
+  provider: "safari"
   app: "com.apple.Safari"
   window: "2BR Apartment - Zillow"
   locator: "https://www.zillow.com/homedetails/4471"
@@ -355,6 +355,8 @@ noteUpdated: 2026-09-29T14:05:40Z
 ---
 2BR, 850 sq ft, $2,400/mo, in-unit laundry
 ```
+
+Keys with no value are left out, and `derivedFrom` and `aiExcluded` appear only when set. Image and file scraps add a top-level `asset` (the stored image or the file's thumbnail), and file scraps (and images whose original file is referenced) a `bookmark` in `reference`. Decision 0017 lists every key, the writing rules, and the YAML subset the app reads.
 
 Frontmatter keeps the files compatible with Obsidian and static-site tools. The app watches the folder with FSEvents, so edits made outside the app show up on the shelf.
 

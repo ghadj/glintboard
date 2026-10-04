@@ -62,6 +62,9 @@ public enum Locator: Sendable, Equatable {
     case file(path: String, bookmark: Data)
     /// A screenshot's capture rectangle, in global screen points.
     case screenRect(ScreenRect)
+    /// A locator this version can't interpret (for example from a newer provider), kept as
+    /// written so it survives a rewrite.
+    case other(String)
 }
 
 /// A rectangle in screen points. Its own type so ScrapModel needs no graphics framework.

@@ -72,7 +72,7 @@ public struct Reference: Sendable, Equatable {
     public var provider: ProviderID
     public var app: AppIdentity?
     public var window: String?
-    public var locator: Locator            // .app, .url, .messageID, .file(path:bookmark:), .screenRect
+    public var locator: Locator            // .app, .url, .messageID, .file(path:bookmark:), .screenRect, .other
     public var deepLink: URL?
     public var label: String
     public var fingerprint: Fingerprint

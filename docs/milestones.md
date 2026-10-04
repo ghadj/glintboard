@@ -122,7 +122,7 @@ A seed tool (`scripts/seed-library`, a small Swift script) generates test librar
 - [ ] Automated: codec round-trips 1,000 generated scraps (Unicode, emoji, multi-line notes, `:`, `#`, quotes, leading spaces) byte-identically after the first normalization pass.
 - [ ] Automated: unknown frontmatter keys survive a read-modify-write, and `derivedFrom` and `aiExcluded` round-trip.
 - [ ] Automated: the store exposes no operation that rewrites a scrap's body; editing a note leaves the body byte-identical.
-- [ ] Automated: a file with anchors, flow maps, or tags fails with a typed error; the store logs it, skips it, and leaves it byte-identical.
+- [ ] Automated: a file with anchors, flow maps, or YAML type tags (`!!str`; Obsidian's `tags:` list is supported) fails with a typed error; the store logs it, skips it, and leaves it byte-identical.
 - [ ] Automated: fingerprints match for text differing only in Unicode composition or whitespace.
 - [ ] Automated: 10,000 random `Rank.between` insertions keep a strict total order.
 - [ ] Automated: an interrupted write (temporary file left behind) never yields a loadable scrap; the leftover is cleaned at launch.
@@ -470,3 +470,4 @@ Full notes live in `docs/decisions/`; this is the index.
 - **2026-10-03, license.** MIT, copyright "the project contributors" (`0015-license-mit.md`).
 - **2026-10-03, NFR-2 target.** Confirmed at < 40 MB: the empty menu bar app's idle footprint is 12 MB (17 MB in an earlier hand measurement), under the 30 MB revisit threshold (`0016-nfr-2-target.md`, `docs/perf.md`).
 - **2026-10-03, NFR-4 method.** Instruments' App Launch template never finishes for an app without a window, so launch time is measured from a log marker before `open` to the app's "Launched: status item installed" log line. `make perf` (`scripts/measure-baseline.sh`) runs it together with the NFR-2 footprint and writes rows for `docs/perf.md`.
+- **2026-10-04, schema 1 frontmatter.** Every key, the writing rules (every string double-quoted, `kind` and `provider` included, empty optional keys left out, UTC dates to the second, the note as a `|` block), file references (`locator` plus `bookmark`, thumbnail in `asset`), the `board` key format, and the YAML subset read: what Obsidian writes is accepted, and anchors, YAML type tags, flow maps and the like are typed errors (`0017-schema-1-frontmatter.md`).
