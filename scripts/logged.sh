@@ -9,7 +9,9 @@
 # The Makefile exports LOG_RUN once per `make` invocation. summary.md lists the targets of
 # that run first and marks older summaries as earlier runs, so a target that didn't run
 # this time can't look like it passed. Output goes through `tee`, so commands don't see a
-# terminal: swift test prints without colour and in bursts, which isn't a hang.
+# terminal: swift test prints without colour and in bursts, which isn't a hang. When the
+# command ends, the summary of this run's targets so far is printed too, so the end of
+# `make test` shows both test-core and test-app.
 set -uo pipefail
 [ $# -ge 2 ] || { echo "usage: $0 <name> <command> [args...]" >&2; exit 2; }
 name=$1
@@ -65,5 +67,27 @@ echo "exit $status" >>"$log"
 "$here/summarize-log.sh" "$name" "$status" >"$dir/$name.summary.tmp" &&
   mv "$dir/$name.summary.tmp" "$dir/$name.summary"
 write_summary
+
+# This run's targets, oldest first, so the last one finished is at the bottom.
+print_run_summary() {
+  local f n bold="" green="" red="" reset=""
+  if [ -t 1 ]; then
+    bold=$'\e[1m' green=$'\e[32m' red=$'\e[31m' reset=$'\e[0m'
+  fi
+  echo
+  echo "${bold}==================== Summary of this run ====================${reset}"
+  for f in $(ls -tr "$dir"/*.summary 2>/dev/null); do
+    n=$(basename "$f" .summary)
+    [ "$(cat "$dir/$n.run" 2>/dev/null)" = "$run" ] || continue
+    echo
+    sed -E \
+      -e "s/^## (.*): PASS$/${bold}\\1: ${green}PASS${reset}/" \
+      -e "s/^## (.*): (FAIL.*|did not finish.*)$/${bold}\\1: ${red}\\2${reset}/" \
+      -e "s/^### (.*)$/${bold}\\1${reset}/" "$f"
+  done
+  echo
+  echo "Saved to $dir/summary.md; full logs in $dir/<target>.log"
+}
+print_run_summary
 
 exit "$status"

@@ -29,7 +29,7 @@ make perf        # Release baseline: idle footprint and launch time (run in Term
 make ci          # everything CI runs
 ```
 
-Build output stays in `.build/`. Build, test, check, bootstrap, and perf runs also save their output to `.build/logs/<target>.log` and a summary to `.build/logs/summary.md`, so results of a run in Terminal can be read afterwards. Debug builds are a separate "Dev" app (bundle id ending in `.dev`) with their own data folder and permissions, so they never touch an installed release. CI builds ad-hoc signed (`XCB_FLAGS="CODE_SIGN_IDENTITY=- CODE_SIGN_STYLE=Manual DEVELOPMENT_TEAM="`), because Apple silicon won't run unsigned code; locally, put your Team ID in `Config/Local.xcconfig` so permissions survive rebuilds.
+Build output stays in `.build/`. Build, test, check, bootstrap, and perf runs also save their output to `.build/logs/<target>.log` and a summary to `.build/logs/summary.md`, so results of a run in Terminal can be read afterwards; the same summary is printed at the end of the run. Debug builds are a separate "Dev" app (bundle id ending in `.dev`) with their own data folder and permissions, so they never touch an installed release. CI builds ad-hoc signed (`XCB_FLAGS="CODE_SIGN_IDENTITY=- CODE_SIGN_STYLE=Manual DEVELOPMENT_TEAM="`), because Apple silicon won't run unsigned code; locally, put your Team ID in `Config/Local.xcconfig` so permissions survive rebuilds.
 
 ## Architecture
 

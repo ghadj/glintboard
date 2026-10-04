@@ -3,7 +3,7 @@
 #
 # Build, test, check, bootstrap, and perf runs also save their output to .build/logs/ and a
 # summary to .build/logs/summary.md (scripts/logged.sh), so an agent can read results of
-# runs made in Terminal.
+# runs made in Terminal. Each of these targets ends by printing the summary of the run so far.
 
 PROJECT     := App.xcodeproj
 SCHEME      := App
