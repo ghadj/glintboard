@@ -206,7 +206,7 @@ AppKit owns windows, focus, and anything performance-sensitive; SwiftUI draws th
 | Piece | Kind | Responsibility |
 | --- | --- | --- |
 | `MenuBarController` | AppKit, main actor | Status item, menu, hotkey actions |
-| `ShelfPanelController` | AppKit, main actor | The non-activating `NSPanel`: frame, key-window behavior, show and hide, Esc and click-outside |
+| `ShelfPanelController` | AppKit, main actor | The non-activating `NSPanel`: frame, key-window behavior, show and hide, Esc, and closing when another app becomes active |
 | `BoardWindowController` | AppKit, main actor | One window per collection, hosting an `NSCollectionView` with the masonry layout |
 | `LibraryModel` | `@Observable`, main actor | Collections, scraps by collection, selection, grouping, search state; consumes the store's change stream |
 | `ShelfView`, `ScrapCardView`, `ReferenceCardView`, `NoteEditor` | SwiftUI | Pure rendering of `LibraryModel` state; user actions call model intent methods |

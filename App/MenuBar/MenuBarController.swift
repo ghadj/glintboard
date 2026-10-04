@@ -5,9 +5,11 @@ import os
 @MainActor
 final class MenuBarController: NSObject, StatusMenuActions {
     let statusItem: NSStatusItem
+    private let shelf: ShelfPanelController
 
-    init(appInfo: AppInfo, statusBar: NSStatusBar = .system) {
+    init(appInfo: AppInfo, shelf: ShelfPanelController, statusBar: NSStatusBar = .system) {
         statusItem = statusBar.statusItem(withLength: NSStatusItem.squareLength)
+        self.shelf = shelf
         super.init()
         if let button = statusItem.button {
             // Placeholder icon until the app icon exists.
@@ -21,7 +23,7 @@ final class MenuBarController: NSObject, StatusMenuActions {
     }
 
     func showShelf(_ sender: Any?) {
-        Logger.ui.info("Show Shelf chosen; the shelf arrives in M1")
+        shelf.show()
     }
 
     func showSettings(_ sender: Any?) {

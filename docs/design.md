@@ -156,7 +156,7 @@ Selecting a scrap expands it in place to show the locator line, capture time and
 **Window behavior**
 
 - Built as an `NSPanel` (non-activating, floating), so opening it never steals focus from the app you are copying from.
-- Summoned by hotkey (⌃⌥V) or by dragging a file to a screen edge; dismissed by Esc or clicking elsewhere unless pinned.
+- Summoned by hotkey (⌃⌥V) or by dragging a file to a screen edge; dismissed by Esc, by the command that opened it, or by switching to another app, unless pinned. Clicks in the app you came from don't dismiss it, so you can select text there and drag it in.
 - Remembers size and position per display.
 
 **Interactions**
@@ -232,7 +232,7 @@ Glintboard uses only system fonts, semantic colors, and SF Symbols, so it matche
 | --- | --- |
 | Shelf width | 300 pt default, resizable 260–420 |
 | Shelf height | 520 pt default, min 320 |
-| Panel corner radius / padding | 12 pt / 12 pt |
+| Panel corners / padding | System window corners / 12 pt |
 | Header / chips row / drop zone | 40 pt / 28 pt / 52 pt |
 | Card radius / padding / gap | 8 pt / 10 pt / 8 pt |
 | Image thumbnail on shelf | 32 pt square, 4 pt radius |

@@ -1,3 +1,4 @@
+import AppKit
 import ScrapCapture
 
 /// The composition root: builds every service and controller once at launch and hands them
@@ -6,13 +7,16 @@ import ScrapCapture
 @MainActor
 final class AppEnvironment {
     let appInfo: AppInfo
+    let shelf: ShelfPanelController
     let menuBar: MenuBarController
     let workspace: any WorkspaceClient
     let lastExternalApp: LastExternalAppTracker
 
     init(appInfo: AppInfo) {
         self.appInfo = appInfo
-        menuBar = MenuBarController(appInfo: appInfo)
+        // The shelf's SwiftUI content arrives with M1-R17.
+        shelf = ShelfPanelController { NSView() }
+        menuBar = MenuBarController(appInfo: appInfo, shelf: shelf)
         workspace = SystemWorkspaceClient()
         lastExternalApp = LastExternalAppTracker(workspace: workspace, ownBundleID: appInfo.bundleIdentifier)
         Task { [lastExternalApp] in await lastExternalApp.start() }
