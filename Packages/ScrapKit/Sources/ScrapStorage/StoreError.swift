@@ -18,4 +18,6 @@ public enum StoreError: Error, Equatable, Sendable {
     case unknownScrap(ScrapID)
     /// A new scrap reused the id of one that already has a file.
     case idInUse(ScrapID)
+    /// The library folder couldn't be watched for changes.
+    case cannotWatch
 }

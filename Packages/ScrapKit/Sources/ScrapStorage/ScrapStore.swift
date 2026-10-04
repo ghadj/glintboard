@@ -154,6 +154,7 @@ public actor ScrapStore {
             let path = collection.rawValue + "/" + name
             if try AtomicFileWriter.write(data, to: folder.appending(path: name), label: path, mode: .createOnly) {
                 paths[scrap.id] = path
+                didWrite(scrap, data: data, path: path)
                 return scrap
             }
             // Created by someone else since the folder was listed: try the next suffix. Tests
@@ -192,9 +193,126 @@ public actor ScrapStore {
             case .asset(let asset): scrap.asset = asset
             }
         }
-        try AtomicFileWriter.write(
-            Data(FrontmatterCodec.encode(scrap).utf8), to: root.appending(path: path), label: path)
+        let data = Data(FrontmatterCodec.encode(scrap).utf8)
+        try AtomicFileWriter.write(data, to: root.appending(path: path), label: path)
+        didWrite(scrap, data: data, path: path)
         return scrap
+    }
+
+    // MARK: - Changes and watching
+
+    /// The store's own recent writes, so their FSEvents echoes aren't mistaken for edits.
+    private var ledger = WriteLedger()
+    private var subscribers: [UUID: AsyncStream<LibraryChange>.Continuation] = [:]
+    private var watcher: FolderWatcher?
+    private var watchTask: Task<Void, Never>?
+
+    /// Every change from now on: the store's own writes (`.saved`) and, while watching, changes
+    /// made outside the app. Each call gets its own stream; it ends when the caller stops
+    /// listening.
+    public func changes() -> AsyncStream<LibraryChange> {
+        let (stream, continuation) = AsyncStream<LibraryChange>.makeStream()
+        let id = UUID()
+        subscribers[id] = continuation
+        continuation.onTermination = { [weak self] _ in
+            Task { await self?.removeSubscriber(id) }
+        }
+        return stream
+    }
+
+    /// Starts reporting changes made outside the app. Event-driven: nothing runs while the folder
+    /// is quiet.
+    /// Call `stopWatching()` when done: the FSEvents stream keeps its watcher alive until then.
+    public func startWatching() async throws(StoreError) {
+        guard watcher == nil else { return }
+        // Claimed before the await, so an overlapping call returns instead of starting a
+        // second watcher.
+        let watcher = FolderWatcher(root: root)
+        self.watcher = watcher
+        let events: AsyncStream<[FolderEvent]>
+        do throws(StoreError) {
+            events = try await watcher.start()
+        } catch {
+            self.watcher = nil
+            throw error
+        }
+        watchTask = Task { [weak self] in
+            for await batch in events {
+                await self?.handle(batch)
+            }
+        }
+    }
+
+    public func stopWatching() async {
+        watchTask?.cancel()
+        watchTask = nil
+        await watcher?.stop()
+        watcher = nil
+    }
+
+    private func removeSubscriber(_ id: UUID) {
+        subscribers[id] = nil
+    }
+
+    private func emit(_ change: LibraryChange) {
+        for subscriber in subscribers.values { subscriber.yield(change) }
+    }
+
+    private func didWrite(_ scrap: Scrap, data: Data, path: String) {
+        ledger.record(path: path, hash: Fingerprint.data(data).rawValue, at: clock.now())
+        emit(.saved(scrap, path: path))
+    }
+
+    /// One batch of FSEvents. Each path is handled once, by what the file holds now.
+    private func handle(_ batch: [FolderEvent]) {
+        // A collection folder renamed or removed (moved to the Trash, say) is reported as the
+        // folder alone, not its files; only a rescan can tell what changed.
+        let collectionFolderGone = batch.contains { $0.isFolderRemovedOrRenamed && !$0.path.contains("/") }
+        if batch.contains(where: \.needsRescan) || collectionFolderGone { emit(.rescanNeeded) }
+        var seen: Set<String> = []
+        for event in batch where seen.insert(event.path).inserted {
+            handleChange(at: event.path)
+        }
+    }
+
+    private func handleChange(at path: String) {
+        guard Self.isScrapPath(path) else { return }
+        let url = root.appending(path: path)
+        guard let data = try? Data(contentsOf: url) else {
+            if !files.fileExists(atPath: url.path(percentEncoded: false)) {
+                let id = paths.first(where: { $0.value == path })?.key
+                if let id { paths[id] = nil }
+                emit(.removed(path: path, id: id))
+            }
+            return
+        }
+        // The store's own write coming back from FSEvents: not a change.
+        if ledger.isEcho(path: path, hash: Fingerprint.data(data).rawValue, now: clock.now()) { return }
+        do throws(CodecError) {
+            let scrap = try FrontmatterCodec.decode(data)
+            if let known = paths[scrap.id], known != path,
+                files.fileExists(atPath: root.appending(path: known).path(percentEncoded: false))
+            {
+                // A copy of a scrap whose file is still there (made in Finder, say). The id stays
+                // with the original; reconciliation (M1-R10) gives the copy a fresh id.
+                Logger.store.notice("Copy of a known scrap at \(path, privacy: .private); left for reconciliation")
+                return
+            }
+            paths[scrap.id] = path
+            emit(.updated(scrap, path: path))
+        } catch {
+            Logger.store.error("Can't read \(path, privacy: .private): \(String(describing: error), privacy: .private)")
+            emit(.problem(path: path, error))
+        }
+    }
+
+    /// A scrap file: `<collection>/<name>.md` directly in a collection folder, not hidden.
+    /// Everything else (`.trash/`, the index, `assets/`, temporary and other files) is ignored.
+    private static func isScrapPath(_ path: String) -> Bool {
+        let parts = path.split(separator: "/", omittingEmptySubsequences: false)
+        guard parts.count == 2, CollectionName(String(parts[0])) != nil else { return false }
+        let name = parts[1]
+        return !name.hasPrefix(".") && name.lowercased().hasSuffix(".md")
     }
 
     /// Frontmatter stores whole seconds, so in-memory scraps do too.
