@@ -51,7 +51,7 @@ A scrap is content plus exactly one reference; the reference is where the value 
 | note | string (Markdown) | Your own annotation; optional, stored apart from content |
 | noteUpdated | timestamp | When the note last changed |
 | schema | integer | Frontmatter schema version, starting at 1; lets future versions migrate files safely |
-| updated | timestamp | Last capture or edit; a duplicate capture bumps it; drives time sorting |
+| updated | timestamp | Last capture, or title or note edit (pinning, board order, and the app's own reference and thumbnail updates don't count); a duplicate capture bumps it; drives time sorting |
 | derivedFrom | list of ids | Scraps this one was built from (AI summaries, merges); empty for captures. Reserved in schema 1 |
 | aiExcluded | bool | Keeps the scrap out of every AI feature; also settable per collection. Reserved in schema 1 |
 

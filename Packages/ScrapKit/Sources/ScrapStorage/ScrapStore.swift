@@ -113,10 +113,93 @@ public actor ScrapStore {
             throw .readFailed(path: relativePath)
         }
         do throws(CodecError) {
-            return try FrontmatterCodec.decode(data)
+            let scrap = try FrontmatterCodec.decode(data)
+            paths[scrap.id] = relativePath
+            return scrap
         } catch {
             throw .unreadable(path: relativePath, error)
         }
+    }
+
+    // MARK: - Writing scraps
+
+    /// Where each scrap's file is, relative to the root, as learned from reads and creates.
+    private var paths: [ScrapID: String] = [:]
+
+    /// The file of a scrap this store has read or created.
+    public func path(of id: ScrapID) throws(StoreError) -> String {
+        guard let path = paths[id] else { throw .unknownScrap(id) }
+        return path
+    }
+
+    /// Writes a new scrap file in `collection`, named by capture time and id. This is the only
+    /// call that writes a body: captured text is immutable afterwards. It never replaces a file;
+    /// a name that's taken gets `-2`, `-3`, and so on.
+    @discardableResult
+    public func create(_ draft: ScrapDraft, in collection: CollectionName) throws(StoreError) -> Scrap {
+        // One file per id (the id is authoritative); a draft reusing a known id is a bug.
+        guard paths[draft.id] == nil else { throw .idInUse(draft.id) }
+        let folder = folder(for: collection)
+        try createFolder(folder, path: collection.rawValue)
+        let created = Self.wholeSeconds(draft.created)
+        let scrap = Scrap(
+            id: draft.id, kind: draft.kind, title: draft.title, body: draft.body, board: draft.board,
+            created: created, updated: created, reference: draft.reference)
+        let data = Data(FrontmatterCodec.encode(scrap).utf8)
+
+        let preferred = LibraryLayout.fileName(created: created, id: draft.id)
+        var taken = Set((try? files.contentsOfDirectory(atPath: folder.path(percentEncoded: false))) ?? [])
+        while true {
+            let name = LibraryLayout.uniqueName(preferred, existing: taken)
+            let path = collection.rawValue + "/" + name
+            if try AtomicFileWriter.write(data, to: folder.appending(path: name), label: path, mode: .createOnly) {
+                paths[scrap.id] = path
+                return scrap
+            }
+            // Created by someone else since the folder was listed: try the next suffix. Tests
+            // can't stage this race without a fake writer, so it's covered by reasoning only.
+            taken.insert(name)
+        }
+    }
+
+    /// Applies `edits` to the scrap's file as it is on disk now. Only frontmatter changes; the
+    /// body, including any edit made in another editor, is written back exactly as it was read.
+    /// Title and note edits count as edits for `updated`; pinning, board order, and the
+    /// system's reference and asset updates don't.
+    @discardableResult
+    public func update(_ id: ScrapID, _ edits: [ScrapEdit]) throws(StoreError) -> Scrap {
+        let path = try self.path(of: id)
+        var scrap = try self.scrap(atPath: path)
+        guard scrap.id == id else {
+            // The file now belongs to another scrap (replaced or renamed outside the app).
+            paths[id] = nil
+            throw .unknownScrap(id)
+        }
+        // Nothing to change: leave the file exactly as another editor may have formatted it.
+        guard !edits.isEmpty else { return scrap }
+        let now = Self.wholeSeconds(clock.now())
+        for edit in edits {
+            switch edit {
+            case .title(let title):
+                scrap.title = title
+                scrap.updated = now
+            case .note(let text):
+                scrap.note = text.map { Note(text: $0, updated: now) }
+                scrap.updated = now
+            case .pinned(let pinned): scrap.pinned = pinned
+            case .board(let rank): scrap.board = rank
+            case .reference(let reference): scrap.reference = reference
+            case .asset(let asset): scrap.asset = asset
+            }
+        }
+        try AtomicFileWriter.write(
+            Data(FrontmatterCodec.encode(scrap).utf8), to: root.appending(path: path), label: path)
+        return scrap
+    }
+
+    /// Frontmatter stores whole seconds, so in-memory scraps do too.
+    private static func wholeSeconds(_ date: Date) -> Date {
+        Date(timeIntervalSince1970: date.timeIntervalSince1970.rounded(.down))
     }
 
     // MARK: - Helpers

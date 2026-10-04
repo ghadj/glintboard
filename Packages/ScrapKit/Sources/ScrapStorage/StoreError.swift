@@ -14,4 +14,8 @@ public enum StoreError: Error, Equatable, Sendable {
     case invalidCollectionFile(path: String)
     /// A `.collection.json` written with a newer schema than this version reads; it's left as it is.
     case newerCollectionSchema(path: String, Int)
+    /// No file is known for this scrap id.
+    case unknownScrap(ScrapID)
+    /// A new scrap reused the id of one that already has a file.
+    case idInUse(ScrapID)
 }
