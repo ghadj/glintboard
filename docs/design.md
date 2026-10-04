@@ -69,7 +69,7 @@ A scrap is content plus exactly one reference; the reference is where the value 
 | status | ok, changed, trashed, missing, unknown | Kept in the index only, so health checks never rewrite user files |
 | lastChecked | timestamp | Index only, like status |
 
-**Collection**: a folder. Its name is the folder name; display order and creation date live in a small .collection.json inside it. Grouping by source or time is computed at display time and never stored.
+**Collection**: a folder. Its name is the folder name; display order and creation date live in a small .collection.json inside it, with a `schema` version like scrap files. Grouping by source or time is computed at display time and never stored.
 
 ## Capture pipeline
 

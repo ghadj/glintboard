@@ -41,6 +41,10 @@ Scrap files are the source of truth (0002), and other tools such as Obsidian edi
 - The note is a `|` block: chomping `-`, none or `+` keeps its trailing newlines exact, and an indentation indicator (`|2`) is added when its first line starts with a space. It falls back to a double-quoted string when only that keeps it exact: empty or newline-only text, carriage returns, characters that need escaping, or lines holding only whitespace.
 - A leading byte-order mark is skipped on read and not written back.
 
+**`.collection.json` (M1-R5, confirmed 2026-10-04):**
+- JSON with `schema` (1), `order` (an integer) and `created` (an ISO 8601 UTC date), pretty-printed with sorted keys. Unknown keys are kept with their JSON type.
+- A file without `schema` reads as schema 1. A newer schema, or a file that isn't valid, is left alone, and its folder is still listed as a collection, after the others.
+
 **`board` keys (M1-R4):**
 - A key is an integer part whose first letter gives its length (`a` plus 1 digit, `b` plus 2, …; `Z` plus 1, `Y` plus 2, … below the `a` keys), followed by a base-62 fraction (`0-9A-Za-z`) that never ends in `0`.
 - The exact key `A` followed by 26 zeros is reserved.

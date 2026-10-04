@@ -17,12 +17,13 @@ src="$root/Packages/ScrapKit/Sources"
 # dependencies in Package.swift and "Module structure" in docs/architecture.md.
 # CryptoKit: SHA-256 fingerprints (Model) and the recent-write ledger (Storage).
 # CoreServices: the FSEvents watcher (Storage).
+# Synchronization: Mutex in test fakes such as FakeWallClock (Test support; M1 plan Q16b).
 allowed() {
   case "$1" in
     ScrapModel) echo "Foundation CryptoKit" ;;
     ScrapStorage) echo "Foundation CryptoKit os SQLite3 CoreServices ScrapModel" ;;
     ScrapCapture) echo "Foundation os ScrapModel ScrapStorage" ;;
-    ScrapTestSupport) echo "Foundation CryptoKit os ScrapModel ScrapStorage ScrapCapture" ;;
+    ScrapTestSupport) echo "Foundation CryptoKit os Synchronization ScrapModel ScrapStorage ScrapCapture" ;;
     *) return 1 ;;
   esac
 }
