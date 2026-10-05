@@ -19,12 +19,22 @@ struct FolderWatcherTests {
             at: library.base.appending(path: "Inbox"), withIntermediateDirectories: true)
 
         let watcher = FolderWatcher(root: throughLink)
-        let events = StreamRecorder(try await watcher.start())
+        let batches = try await watcher.start()
+        // One event per value, so the wait below can match on the path alone (see the note on
+        // `StreamRecorder`).
+        let events = StreamRecorder(
+            AsyncStream<FolderEvent> { continuation in
+                let forward = Task {
+                    for await batch in batches { for event in batch { continuation.yield(event) } }
+                    continuation.finish()
+                }
+                continuation.onTermination = { _ in forward.cancel() }
+            })
         try Data("x".utf8).write(to: library.base.appending(path: "Inbox/x.md"))
 
-        let batch = await events.waitFor(within: 10) { $0.contains { $0.path == "Inbox/x.md" } }
+        let event = await events.waitFor(within: 10) { $0.path == "Inbox/x.md" }
         await watcher.stop()
-        #expect(batch != nil)
+        #expect(event?.path == "Inbox/x.md")
     }
 
     // MARK: - Mapping FSEvents flags (no FSEvents needed)

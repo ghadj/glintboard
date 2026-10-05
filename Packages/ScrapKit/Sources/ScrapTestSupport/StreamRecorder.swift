@@ -4,15 +4,19 @@ import Synchronization
 /// Records everything an async stream delivers, and lets a test wait for a value that matches,
 /// with a deadline. A missed deadline returns nil, so the test fails instead of hanging, and
 /// no test sleeps for a fixed time hoping something has happened.
+///
+/// Never write a `waitFor` call (or any closure) inside `#expect` or `#require`: store the
+/// result in a local and check that. With the Swift compiler in Xcode 27, a closure written
+/// inside a macro argument within another closure can get the same symbol as a different
+/// closure in that function. A wait then ran another wait's predicate and returned the wrong
+/// change, so tests passed without checking anything; when the two closures' types differ the
+/// build fails with "function type mismatch". Predicates are evaluated only by the waiting
+/// call, over everything recorded so far; a new value just wakes the waiters to look again.
 public final class StreamRecorder<Element: Sendable>: Sendable {
-    private struct Waiter {
-        let predicate: @Sendable (Element) -> Bool
-        let continuation: CheckedContinuation<Element?, Never>
-    }
-
     private struct State {
         var values: [Element] = []
-        var waiters: [UUID: Waiter] = [:]
+        var waiters: [UUID: CheckedContinuation<Void, Never>] = [:]
+        var finished = false
     }
 
     private let state = Mutex(State())
@@ -21,6 +25,7 @@ public final class StreamRecorder<Element: Sendable>: Sendable {
     public init(_ stream: AsyncStream<Element>) {
         let listener = Task { [weak self] in
             for await value in stream { self?.receive(value) }
+            self?.finish()
         }
         task.withLock { $0 = listener }
     }
@@ -37,36 +42,59 @@ public final class StreamRecorder<Element: Sendable>: Sendable {
     public func waitFor(within seconds: Double = 5, _ predicate: @escaping @Sendable (Element) -> Bool) async
         -> Element?
     {
-        let id = UUID()
-        return await withCheckedContinuation { continuation in
-            let earlier: Element? = state.withLock { state in
-                if let match = state.values.first(where: predicate) { return match }
-                state.waiters[id] = Waiter(predicate: predicate, continuation: continuation)
-                return nil
+        let deadline = ContinuousClock.now + .seconds(seconds)
+        while true {
+            if let match = values.first(where: predicate) { return match }
+            guard ContinuousClock.now < deadline, await waitForNextValue(until: deadline) else {
+                return values.first(where: predicate)
             }
-            if let earlier {
-                continuation.resume(returning: earlier)
+        }
+    }
+
+    /// Suspends until another value arrives (true) or the deadline passes or the stream ends
+    /// (false).
+    private func waitForNextValue(until deadline: ContinuousClock.Instant) async -> Bool {
+        let id = UUID()
+        let countBefore = state.withLock { $0.values.count }
+        await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
+            let resumeNow = state.withLock { state in
+                // Something may have arrived (or the stream ended) since `countBefore`.
+                if state.values.count != countBefore || state.finished { return true }
+                state.waiters[id] = continuation
+                return false
+            }
+            if resumeNow {
+                continuation.resume()
                 return
             }
             Task { [weak self] in
-                try? await Task.sleep(for: .seconds(seconds))
-                self?.expire(id)
+                try? await Task.sleep(until: deadline, clock: .continuous)
+                self?.wake(id)
             }
         }
+        return state.withLock { $0.values.count != countBefore }
     }
 
     private func receive(_ value: Element) {
-        let matched: [Waiter] = state.withLock { state in
+        let waiters = state.withLock { state in
             state.values.append(value)
-            let matching = state.waiters.filter { $0.value.predicate(value) }
-            for id in matching.keys { state.waiters[id] = nil }
-            return Array(matching.values)
+            defer { state.waiters = [:] }
+            return Array(state.waiters.values)
         }
-        for waiter in matched { waiter.continuation.resume(returning: value) }
+        for waiter in waiters { waiter.resume() }
     }
 
-    private func expire(_ id: UUID) {
+    private func finish() {
+        let waiters = state.withLock { state in
+            state.finished = true
+            defer { state.waiters = [:] }
+            return Array(state.waiters.values)
+        }
+        for waiter in waiters { waiter.resume() }
+    }
+
+    private func wake(_ id: UUID) {
         let waiter = state.withLock { $0.waiters.removeValue(forKey: id) }
-        waiter?.continuation.resume(returning: nil)
+        waiter?.resume()
     }
 }

@@ -21,11 +21,14 @@ struct StoreEchoTests {
             let path = try await store.path(of: scrap.id)
 
             try Fixtures.data("design-example.md").write(to: library.root.appending(path: "Inbox/sentinel.md"))
-            #expect(await changes.waitFor(within: 10) { $0.path == "Inbox/sentinel.md" } != nil)
+            let sentinel = await changes.waitFor(within: 10) { $0.path == "Inbox/sentinel.md" }
+            #expect(sentinel?.path == "Inbox/sentinel.md")
 
-            let reloads = changes.values.filter { if case .updated(_, path) = $0 { true } else { false } }
+            let reloads = changes.values.filter {
+                if case .updated(_, let file) = $0 { file.path == path } else { false }
+            }
             #expect(reloads.isEmpty, "the store's own writes were reported as edits: \(reloads)")
-            let saves = changes.values.filter { if case .saved(_, path) = $0 { true } else { false } }
+            let saves = changes.values.filter { if case .saved(_, let file) = $0 { file.path == path } else { false } }
             #expect(saves.count == 2)
         }
     }
@@ -39,10 +42,13 @@ struct StoreEchoTests {
             let edited = try String(contentsOf: url, encoding: .utf8) + "\nedited elsewhere"
             try Data(edited.utf8).write(to: url)
 
-            let change = await changes.waitFor(within: 10) {
-                if case .updated(let updated, path) = $0 { updated.body.hasSuffix("edited elsewhere") } else { false }
-            }
-            #expect(change != nil)
+            // The store's own save has the same path, so wait for a sentinel written after the
+            // edit, then look for the edit among everything recorded.
+            try Fixtures.data("design-example.md").write(to: library.root.appending(path: "Inbox/sentinel.md"))
+            let sentinel = await changes.waitFor(within: 10) { $0.path == "Inbox/sentinel.md" }
+            #expect(sentinel?.path == "Inbox/sentinel.md")
+            let edits = changes.values.filter { $0.isUpdate(at: path, bodyEndingWith: "edited elsewhere") }
+            #expect(edits.count == 1, "changes: \(changes.values.map(IndexFollowerTests.describe))")
         }
     }
 
@@ -54,10 +60,8 @@ struct StoreEchoTests {
             let id = try #require(ScrapID(string: "8f3a0c2d-5d0f-4c8e-9a51-3c1e7a2b71e4"))
 
             try Fixtures.data("design-example.md").write(to: url)
-            let created = await changes.waitFor(within: 10) {
-                if case .updated(let scrap, "Inbox/copied-in.md") = $0 { scrap.id == id } else { false }
-            }
-            #expect(created != nil)
+            let created = await changes.waitFor(within: 10) { $0.path == "Inbox/copied-in.md" }
+            #expect(created?.isUpdate(at: "Inbox/copied-in.md", of: id) == true)
 
             try FileManager.default.removeItem(at: url)
             let removed = await changes.waitFor(within: 10) { $0 == .removed(path: "Inbox/copied-in.md", id: id) }
@@ -82,7 +86,8 @@ struct StoreEchoTests {
             try Data("{}".utf8).write(to: library.root.appending(path: "Inbox/.collection.json"))
 
             try example.write(to: library.root.appending(path: "Inbox/sentinel.md"))
-            #expect(await changes.waitFor(within: 10) { $0.path == "Inbox/sentinel.md" } != nil)
+            let sentinel = await changes.waitFor(within: 10) { $0.path == "Inbox/sentinel.md" }
+            #expect(sentinel?.path == "Inbox/sentinel.md")
             let others = changes.values.filter { $0.path != "Inbox/sentinel.md" }
             #expect(others.isEmpty, "unexpected changes: \(others)")
         }
@@ -111,10 +116,12 @@ struct StoreEchoTests {
             let folder = library.root.appending(path: "Projects")
             try files.createDirectory(at: folder, withIntermediateDirectories: false)
             try Fixtures.data("design-example.md").write(to: folder.appending(path: "a.md"))
-            #expect(await changes.waitFor(within: 10) { $0.path == "Projects/a.md" } != nil)
+            let created = await changes.waitFor(within: 10) { $0.path == "Projects/a.md" }
+            #expect(created?.path == "Projects/a.md")
 
             try files.moveItem(at: folder, to: library.base.appending(path: "Projects"))
-            #expect(await changes.waitFor(within: 10) { $0 == .rescanNeeded } != nil)
+            let rescan = await changes.waitFor(within: 10) { $0 == .rescanNeeded }
+            #expect(rescan == .rescanNeeded)
         }
     }
 
@@ -128,8 +135,10 @@ struct StoreEchoTests {
                 at: library.root.appending(path: original), to: library.root.appending(path: "Inbox/copy.md"))
 
             try Fixtures.data("design-example.md").write(to: library.root.appending(path: "Inbox/sentinel.md"))
-            #expect(await changes.waitFor(within: 10) { $0.path == "Inbox/sentinel.md" } != nil)
-            #expect(!changes.values.contains { $0.path == "Inbox/copy.md" })
+            let sentinel = await changes.waitFor(within: 10) { $0.path == "Inbox/sentinel.md" }
+            #expect(sentinel?.path == "Inbox/sentinel.md")
+            let copies = changes.values.filter { $0.path == "Inbox/copy.md" }
+            #expect(copies.isEmpty)
             #expect(try await store.path(of: scrap.id) == original)
         }
     }

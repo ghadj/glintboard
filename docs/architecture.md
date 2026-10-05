@@ -146,7 +146,7 @@ The trigger snapshots the context (pasteboard items, last external app, window t
 1. FSEvents reports a change to a scrap file.
 2. The store hashes it; a ledger match is its own echo and is dropped.
 3. Otherwise it parses the file and emits `LibraryChange.updated`, or `.problem` if parsing fails.
-4. The index upserts the row, and `LibraryModel` updates the card.
+4. `IndexFollower` applies the change to the index (upserting or removing the row), then passes it on; `LibraryModel` listens to the follower, so it updates the card only once the index has the change. The store's own writes reach the index the same way, as `.saved`. Each listener gets its own stream from `changes()`.
 
 **Health check**
 
@@ -252,7 +252,10 @@ CREATE TABLE scraps (
   created     REAL NOT NULL,
   updated     REAL NOT NULL,
   fingerprint TEXT NOT NULL,
-  locator     TEXT
+  locator     TEXT,
+  preview     TEXT NOT NULL,          -- first 300 characters of the body, for cards
+  asset       TEXT,                   -- stored image or thumbnail, for cards
+  has_note    INTEGER NOT NULL
 );
 CREATE INDEX scraps_recent ON scraps(collection, updated DESC);
 CREATE INDEX scraps_board  ON scraps(collection, board);
@@ -264,9 +267,11 @@ CREATE TABLE health (
   last_checked REAL NOT NULL
 );
 
+CREATE TABLE meta (key TEXT PRIMARY KEY, value TEXT NOT NULL);  -- the full-text engine used
+
 -- FTS4 fallback uses the same columns with tokenize=unicode61
 CREATE VIRTUAL TABLE scraps_fts USING fts5(
-  title, body, note, label, window,
+  title, body, note, label, window_title,
   tokenize = 'unicode61 remove_diacritics 2',
   prefix = '2 3'
 );   -- rowid matches scraps.rowid

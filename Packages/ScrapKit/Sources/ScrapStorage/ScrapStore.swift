@@ -260,7 +260,18 @@ public actor ScrapStore {
 
     private func didWrite(_ scrap: Scrap, data: Data, path: String) {
         ledger.record(path: path, hash: Fingerprint.data(data).rawValue, at: clock.now())
-        emit(.saved(scrap, path: path))
+        emit(.saved(scrap, file: fileInfo(at: path, size: data.count)))
+    }
+
+    /// The file's modification date and size as they are now, read the same way `scan()` reads
+    /// them, so reconciliation can compare the two exactly. `size` is the fallback if the file
+    /// can't be inspected.
+    private func fileInfo(at path: String, size: Int) -> ScrapFileInfo {
+        let values = try? root.appending(path: path).resourceValues(forKeys: [
+            .contentModificationDateKey, .fileSizeKey,
+        ])
+        return ScrapFileInfo(
+            path: path, modified: values?.contentModificationDate ?? .distantPast, size: values?.fileSize ?? size)
     }
 
     /// One batch of FSEvents. Each path is handled once, by what the file holds now.
@@ -299,7 +310,7 @@ public actor ScrapStore {
                 return
             }
             paths[scrap.id] = path
-            emit(.updated(scrap, path: path))
+            emit(.updated(scrap, file: fileInfo(at: path, size: data.count)))
         } catch {
             Logger.store.error("Can't read \(path, privacy: .private): \(String(describing: error), privacy: .private)")
             emit(.problem(path: path, error))

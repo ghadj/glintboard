@@ -208,8 +208,8 @@ struct ScrapImmutabilityTests {
         let bytes = Array(try Data(contentsOf: url))
         let marker = Array("\n---\n".utf8)
         try #require(bytes.count >= 4 + marker.count, "file too short to hold frontmatter")
-        let start = try #require(
-            (4..<(bytes.count - marker.count + 1)).first { Array(bytes[$0..<($0 + marker.count)]) == marker })
+        let found = (4..<(bytes.count - marker.count + 1)).first { Array(bytes[$0..<($0 + marker.count)]) == marker }
+        let start = try #require(found)
         return Array(bytes[(start + marker.count)...])
     }
 }

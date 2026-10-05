@@ -7,4 +7,6 @@ import os
 extension Logger {
     /// The library folder: writes, cleanup, and watching.
     static let store = Logger(subsystem: Bundle.main.bundleIdentifier ?? "ScrapKit", category: "store")
+    /// The search index and keeping it in step with the library.
+    static let index = Logger(subsystem: Bundle.main.bundleIdentifier ?? "ScrapKit", category: "index")
 }

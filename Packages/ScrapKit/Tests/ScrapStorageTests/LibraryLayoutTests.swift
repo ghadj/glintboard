@@ -155,7 +155,8 @@ struct LibraryLayoutTests {
 
         let collections = try await store.collections()
         #expect(collections.map(\.name) == ["Inbox", "Alpha", "Zeta"])
-        #expect(collections.dropFirst().allSatisfy { $0.order == .max })
+        let unordered = collections.dropFirst().allSatisfy { $0.order == .max }
+        #expect(unordered)
         #expect(try Data(contentsOf: invalid) == Data("not json".utf8))
     }
 

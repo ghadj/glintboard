@@ -23,10 +23,12 @@ struct RankTests {
             }
             ranks.insert(rank, at: index)
         }
-        #expect(zip(ranks, ranks.dropFirst()).allSatisfy { $0 < $1 })
+        let ascending = zip(ranks, ranks.dropFirst()).allSatisfy { $0 < $1 }
+        #expect(ascending)
         #expect(Set(ranks).count == ranks.count)
         // Every generated key is one the parser accepts, so it survives a trip through a file.
-        #expect(ranks.allSatisfy { Rank(rawValue: $0.rawValue) == $0 })
+        let parsed = ranks.allSatisfy { Rank(rawValue: $0.rawValue) == $0 }
+        #expect(parsed)
     }
 
     @Test func betweenAdjacentKeysStillFitsAKey() throws {
@@ -146,6 +148,7 @@ struct RankTests {
 
     @Test func ordersByBytes() throws {
         let keys = try ["Zz", "a0", "a0V", "a1", "az", "b00"].map { try #require(Rank(rawValue: $0)) }
-        #expect(zip(keys, keys.dropFirst()).allSatisfy { $0 < $1 })
+        let ascending = zip(keys, keys.dropFirst()).allSatisfy { $0 < $1 }
+        #expect(ascending)
     }
 }

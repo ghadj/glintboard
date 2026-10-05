@@ -63,6 +63,7 @@ struct FingerprintTests {
         #expect(raw.hasPrefix("sha256:"))
         let hex = raw.dropFirst("sha256:".count)
         #expect(hex.count == 64)
-        #expect(hex.allSatisfy { "0123456789abcdef".contains($0) })
+        let lowercaseHex = hex.allSatisfy { "0123456789abcdef".contains($0) }
+        #expect(lowercaseHex)
     }
 }
